@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,8 +65,10 @@ export default function LoginPage() {
       setAuth({ access_token, refresh_token, AdminID });
       toast.success("Login successful!");
       router.push("/dashboard");
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Invalid credentials";
+    } catch (err: unknown) {
+      const error = err as AxiosError<{ message: string }>;
+      const errorMessage =
+        error.response?.data?.message || "Invalid credentials";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
