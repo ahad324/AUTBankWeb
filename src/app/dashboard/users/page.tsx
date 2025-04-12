@@ -10,6 +10,14 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import TableSkeleton from "@/components/common/TableSkeleton";
 
+type User = {
+  UserID: number;
+  Username: string;
+  Email: string;
+  Balance: number;
+  IsActive: boolean;
+};
+
 export default function ViewUsers() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -34,7 +42,7 @@ export default function ViewUsers() {
     onError: () => toast.error("Failed to toggle user status"),
   });
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<User>[] = [
     { accessorKey: "UserID", header: "ID" },
     { accessorKey: "Username", header: "Username" },
     { accessorKey: "Email", header: "Email" },

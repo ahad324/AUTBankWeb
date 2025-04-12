@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { AxiosError } from "axios";
 
 const loginSchema = z.object({
   email: z
@@ -75,8 +76,10 @@ export default function LoginPage() {
       });
       toast.success("Login successful!");
       router.push("/dashboard");
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Invalid credentials";
+    } catch (err: unknown) {
+      const error = err as AxiosError<{ message?: string }>;
+      const errorMessage =
+        error?.response?.data?.message || "Invalid credentials";
       toast.error(errorMessage);
     }
   };

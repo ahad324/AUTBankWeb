@@ -28,6 +28,9 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import DashboardSkeleton from "@/components/dashboard/DashboardSkeleton";
+import Link from "next/link";
+
+type Activity = { description: string };
 
 export default function Dashboard() {
   const { data, isLoading, error } = useQuery({
@@ -127,20 +130,20 @@ export default function Dashboard() {
               asChild
               className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground transition-all duration-300"
             >
-              <a href="/dashboard/users/add">Add New User</a>
+              <Link href="/dashboard/users/add">Add New User</Link>
             </Button>
             <Button
               asChild
               className="w-full bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-secondary-foreground transition-all duration-300"
             >
-              <a href="/dashboard/deposits/process">Process Deposit</a>
+              <Link href="/dashboard/deposits/process">Process Deposit</Link>
             </Button>
             <Button
               asChild
               variant="outline"
               className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
             >
-              <a href="/dashboard/loans">Review Loans</a>
+              <Link href="/dashboard/loans">Review Loans</Link>
             </Button>
           </CardContent>
         </Card>
@@ -296,14 +299,16 @@ export default function Dashboard() {
             {recentActivity.length === 0 ? (
               <p className="text-muted-foreground">No recent activity</p>
             ) : (
-              recentActivity.slice(0, 3).map((activity: any, index: number) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <p className="text-sm text-foreground">
-                    {activity.description || "Activity occurred"}
-                  </p>
-                </div>
-              ))
+              recentActivity
+                .slice(0, 3)
+                .map((activity: Activity, index: number) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                    <p className="text-sm text-foreground">
+                      {activity.description || "Activity occurred"}
+                    </p>
+                  </div>
+                ))
             )}
           </CardContent>
         </Card>

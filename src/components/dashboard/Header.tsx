@@ -6,7 +6,6 @@ import { Menu, LogOut, Bell, X, MoreVertical } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { useWebSocket } from "@/lib/useWebSocket";
-import { Notification } from "@/types/notifications";
 import {
   Popover,
   PopoverContent,
@@ -22,6 +21,11 @@ interface HeaderProps {
   isSidebarOpen: boolean;
   className?: string;
 }
+
+type Notification =
+  | { type: "transaction"; data: { TransactionID: number; Amount: number } }
+  | { type: "loan"; data: { LoanID: number } }
+  | { type: "user"; data: { Username: string } };
 
 export default function Header({
   toggleSidebar,

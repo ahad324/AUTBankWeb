@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -144,7 +145,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
     >
       {/* Header section of the sidebar (non-scrollable) */}
       <div className="hidden sm:flex items-center p-4 border-b border-sidebar-border">
-        <img
+        <Image
           src="/logo.png"
           alt="AUT Bank Logo"
           className="h-8 w-8 rounded-full mr-2"

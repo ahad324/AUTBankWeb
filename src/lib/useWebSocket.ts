@@ -3,10 +3,11 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { Notification } from "@/types/notifications";
 
 export function useWebSocket() {
   const { accessToken } = useAuthStore();
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     if (!accessToken) return;

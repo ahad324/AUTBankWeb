@@ -12,8 +12,6 @@ interface LoadingSpinnerProps {
   fullscreen?: boolean; // full screen mode
   className?: string; // optional wrapper class
 }
-type Speed = "fast" | "medium" | "slow";
-type GranularSpeed = { type: "keyStrokeDelayInMs"; value: number };
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   text = "Loading...",
