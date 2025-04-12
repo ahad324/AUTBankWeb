@@ -108,7 +108,7 @@ export default function ViewUsers() {
   if (isLoading) return <TableSkeleton columns={6} rows={5} />;
 
   return (
-    <div className="p-6">
+    <section>
       <h1>Manage Users</h1>
       <DataTable columns={columns} data={data || []} />
       {deleteUser && (
@@ -137,6 +137,6 @@ export default function ViewUsers() {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </section>
   );
 }

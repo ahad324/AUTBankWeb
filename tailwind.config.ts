@@ -27,6 +27,11 @@ module.exports = {
         "sidebar-border": "hsl(var(--sidebar-border))",
         accent: "hsl(var(--accent))",
         "accent-foreground": "hsl(var(--accent-foreground))",
+        "chart-1": "var(--chart-1)",
+        "chart-2": "var(--chart-2)",
+        "chart-3": "var(--chart-3)",
+        "chart-4": "var(--chart-4)",
+        "chart-5": "var(--chart-5)",
       },
       borderRadius: {
         sm: "var(--radius-sm)",
