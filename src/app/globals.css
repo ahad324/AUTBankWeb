@@ -44,6 +44,67 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+:root {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 10%;
+  --card-foreground: 0 0% 98%;
+  --muted: 240 5% 20%;
+  --muted-foreground: 240 5% 60%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 142 76% 36%;
+  --secondary-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 5% 30%;
+  --input: 240 5% 30%;
+  --sidebar: 240 10% 8%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-accent: 240 5% 20%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-primary: 221 83% 53%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-border: 240 5% 30%;
+  --accent: 240 5% 40%;
+  --accent-foreground: 0 0% 98%;
+}
+
+/* src/app/globals.css */
+@keyframes skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-skeleton {
+  animation: skeleton 1.5s ease-in-out infinite;
+}
+
+section {
+  @apply animate-in fade-in duration-500;
+}
+
+h1 {
+  @apply font-bold text-foreground mb-6 text-3xl;
+}
+
+*:-webkit-scrollbar {
+  display: none;
+  /* Hide scrollbar for Chrome, Safari */
+}
+
+* {
+  -ms-overflow-style: none;
+  /* Hide scrollbar for IE, Edge */
+  scrollbar-width: none;
+  /* Hide scrollbar for Firefox */
+}
+
 /* Default to dark theme */
 :root {
   --radius: 0.625rem;

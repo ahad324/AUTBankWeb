@@ -1,8 +1,11 @@
+// src/app/layout.tsx
+import { ReactNode } from "react";
 import "@/app/globals.css";
 import { Inter } from "next/font/google";
 import ClientThemeWrapper from "@/components/ClientThemeWrapper";
-import { ReactNode } from "react";
-
+import AuthProvider from "@/components/AuthProvider";
+import { QueryProvider } from "@/lib/queryClient";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,10 +19,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className={`${inter.className}`}>
-        <ClientThemeWrapper>
-          {children}
-          <Toaster />
-        </ClientThemeWrapper>
+        <QueryProvider>
+          <AuthProvider>
+            <ClientThemeWrapper>
+              <ErrorBoundary>{children}</ErrorBoundary>
+              <Toaster richColors />
+            </ClientThemeWrapper>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

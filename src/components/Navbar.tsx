@@ -24,7 +24,7 @@ export default function Navbar() {
           </div>
           <div>
             <Link href="/login">
-              <button className="cursor-pointer bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90">
+              <button className="font-semibold cursor-pointer bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90">
                 Admin Login
               </button>
             </Link>

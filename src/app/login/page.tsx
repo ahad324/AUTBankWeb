@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,28 +14,28 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-// Define the validation schema with zod
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  email: z
+    .string()
+    .email("Please enter a valid email")
+    .nonempty("Email is required"),
   password: z
     .string()
-    .min(8, { message: "Password must be at least 8 characters long" }),
+    .min(8, "Password must be at least 8 characters long")
+    .nonempty("Password is required"),
 });
 
-// Infer the form type from the schema
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { setAuth, accessToken } = useAuthStore();
   const router = useRouter();
 
-  // Initialize react-hook-form with zod resolver
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -45,7 +44,6 @@ export default function LoginPage() {
     },
   });
 
-  // Redirect if already logged in
   useEffect(() => {
     if (accessToken) {
       router.push("/dashboard");
@@ -53,25 +51,33 @@ export default function LoginPage() {
   }, [accessToken, router]);
 
   const onSubmit = async (data: LoginFormData) => {
-    setLoading(true);
-
     try {
       const response = await api.post("/admins/login", {
         Email: data.email,
         Password: data.password,
       });
 
-      const { access_token, refresh_token, AdminID } = response.data.data;
-      setAuth({ access_token, refresh_token, AdminID });
+      const {
+        access_token,
+        refresh_token,
+        AdminID,
+        Username,
+        Role,
+        Permissions,
+      } = response.data.data;
+      setAuth({
+        access_token,
+        refresh_token,
+        AdminID,
+        Username,
+        Role,
+        Permissions,
+      });
       toast.success("Login successful!");
       router.push("/dashboard");
-    } catch (err: unknown) {
-      const error = err as AxiosError<{ message: string }>;
-      const errorMessage =
-        error.response?.data?.message || "Invalid credentials";
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Invalid credentials";
       toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -79,22 +85,20 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-      {/* Branding/Logo */}
       <div className="mb-8 flex flex-col items-center">
         <Image
           src="/logo.png"
           alt="AUT Bank Logo"
           width={80}
           height={80}
-          className="mb-4"
+          className="mb-4 rounded-full"
         />
-        <h1 className="text-3xl font-bold text-foreground">AUT Bank</h1>
+        <h1>AUT Bank</h1>
         <p className="text-muted-foreground">
           Smart Banking for a Smarter Future.
         </p>
       </div>
 
-      {/* Login Card */}
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
@@ -143,9 +147,13 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Login"}
+              {isSubmitting ? (
+                <Loader2 className="animate-spin h-5 w-5" />
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
         </CardContent>
