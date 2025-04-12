@@ -123,24 +123,28 @@ export default function ViewTransactions() {
           {exportMutation.isPending ? "Exporting..." : "Export CSV"}
         </Button>
       </div>
-      <DataTable columns={columns} data={data.data.transactions} />
-      <div className="mt-4 flex justify-between">
-        <Button
-          disabled={page === 1}
-          onClick={() => setPage((prev) => prev - 1)}
-        >
-          Previous
-        </Button>
-        <span>
-          Page {page} of {data.total_pages}
-        </span>
-        <Button
-          disabled={page >= data.total_pages}
-          onClick={() => setPage((prev) => prev + 1)}
-        >
-          Next
-        </Button>
-      </div>
+      {data ? (
+        <>
+          <DataTable columns={columns} data={data.data.transactions} />
+          <div className="mt-4 flex justify-between">
+            <Button
+              disabled={page === 1}
+              onClick={() => setPage((prev) => prev - 1)}
+            >
+              Previous
+            </Button>
+            <span>
+              Page {page} of {data.total_pages}
+            </span>
+            <Button
+              disabled={page >= data.total_pages}
+              onClick={() => setPage((prev) => prev + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </>
+      ) : null}
     </section>
   );
 }

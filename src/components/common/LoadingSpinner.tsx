@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 import { TypeAnimation } from "react-type-animation";
 
@@ -12,6 +12,8 @@ interface LoadingSpinnerProps {
   fullscreen?: boolean; // full screen mode
   className?: string; // optional wrapper class
 }
+type Speed = "fast" | "medium" | "slow";
+type GranularSpeed = { type: "keyStrokeDelayInMs"; value: number };
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   text = "Loading...",
@@ -30,7 +32,12 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   });
 
   // Convert boolean repeat value to number if necessary
-  const repeatValue = repeat === true ? Infinity : repeat;
+  const repeatValue =
+    repeat === true
+      ? Infinity
+      : typeof repeat === "number"
+      ? repeat
+      : undefined;
 
   return (
     <div
@@ -48,7 +55,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       <div className="text-primary text-xl font-mono">
         <TypeAnimation
           sequence={sequence}
-          speed={typingSpeed}
+          speed={{ type: "keyStrokeDelayInMs", value: typingSpeed }}
           repeat={repeatValue}
           wrapper="span"
           style={{ display: "inline-block" }}

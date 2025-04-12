@@ -2,20 +2,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 
-export default function UserDetails({
-  params,
-}: {
-  params: { user_id: string };
-}) {
+export default function UserDetails() {
   const router = useRouter();
-  const userId = params.user_id;
+  const params = useParams();
+  const userId = params.user_id as string;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user", userId],

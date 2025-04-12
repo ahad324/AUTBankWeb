@@ -6,6 +6,7 @@ import { Menu, LogOut, Bell, X, MoreVertical } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { useWebSocket } from "@/lib/useWebSocket";
+import { Notification } from "@/types/notifications";
 import {
   Popover,
   PopoverContent,
@@ -14,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -28,8 +30,10 @@ export default function Header({
 }: HeaderProps) {
   const { adminId, role, username, clearAuth } = useAuthStore();
   const router = useRouter();
-  const { notifications: incomingNotifications } = useWebSocket();
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const {
+    notifications: incomingNotifications,
+  }: { notifications: Notification[] } = useWebSocket();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     if (incomingNotifications.length > 0) {
@@ -89,7 +93,7 @@ export default function Header({
             )}
           </button>
           <div className="flex items-center gap-2 sm:hidden">
-            <img
+            <Image
               src="/logo.png"
               alt="AUT Bank Logo"
               className="h-8 w-8 rounded-full border border-sidebar-border shadow-sm"

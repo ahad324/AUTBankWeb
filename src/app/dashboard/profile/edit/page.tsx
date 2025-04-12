@@ -34,7 +34,6 @@ export default function EditProfile() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<EditProfileFormData>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: data ? { username: data.Username, email: data.Email } : {},

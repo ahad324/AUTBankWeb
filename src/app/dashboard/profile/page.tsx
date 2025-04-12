@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useAuthStore } from "@/store/authStore";
 import FormSkeleton from "@/components/common/FormSkeleton";
 
