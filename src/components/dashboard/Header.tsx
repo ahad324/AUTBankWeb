@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import Logo from "../common/Logo";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -97,14 +97,7 @@ export default function Header({
             )}
           </button>
           <div className="flex items-center gap-2 sm:hidden">
-            <Image
-              src="/logo.png"
-              alt="AUT Bank Logo"
-              className="h-8 w-8 rounded-full border border-sidebar-border shadow-sm"
-            />
-            <span className="text-2xl font-bold text-sidebar-foreground tracking-tight">
-              AUT Bank
-            </span>
+            <Logo />
           </div>
         </div>
 

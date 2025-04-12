@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import Logo from "@/components/common/Logo";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -71,6 +71,10 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       permission: "transaction:view",
       subItems: [
         { name: "View Transactions", href: "/dashboard/transactions" },
+        {
+          name: "Process Transaction",
+          href: "/dashboard/transactions/process",
+        },
       ],
     },
     {
@@ -100,6 +104,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       permission: "rbac:manage",
       subItems: [
         { name: "Manage Roles", href: "/dashboard/rbac/roles" },
+        { name: "Manage Permissions", href: "/dashboard/rbac/permissions" },
         { name: "Assign Roles", href: "/dashboard/rbac/assign" },
       ],
     },
@@ -145,12 +150,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
     >
       {/* Header section of the sidebar (non-scrollable) */}
       <div className="hidden sm:flex items-center p-4 border-b border-sidebar-border">
-        <Image
-          src="/logo.png"
-          alt="AUT Bank Logo"
-          className="h-8 w-8 rounded-full mr-2"
-        />
-        <span className="text-lg font-bold">AUT Bank</span>
+        <Logo />
       </div>
 
       {/* Scrollable navigation section with constrained height */}
