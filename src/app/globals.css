@@ -3,12 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Define theme variables inline with flexibility */
+/* Define theme variables for Tailwind */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -42,35 +40,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-skeleton-base: var(--skeleton-base);
+  --color-skeleton-highlight: var(--skeleton-highlight);
 }
 
+/* Minimal fallbacks */
 :root {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 10%;
-  --card-foreground: 0 0% 98%;
-  --muted: 240 5% 20%;
-  --muted-foreground: 240 5% 60%;
-  --primary: 221 83% 53%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 142 76% 36%;
-  --secondary-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 240 5% 30%;
-  --input: 240 5% 30%;
-  --sidebar: 240 10% 8%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-accent: 240 5% 20%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-primary: 221 83% 53%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-border: 240 5% 30%;
-  --accent: 240 5% 40%;
-  --accent-foreground: 0 0% 98%;
+  --radius: 0.625rem;
 }
 
-/* src/app/globals.css */
 @keyframes skeleton {
   0% {
     background-position: 200% 0;
@@ -95,91 +73,11 @@ h1 {
 
 *:-webkit-scrollbar {
   display: none;
-  /* Hide scrollbar for Chrome, Safari */
 }
 
 * {
   -ms-overflow-style: none;
-  /* Hide scrollbar for IE, Edge */
   scrollbar-width: none;
-  /* Hide scrollbar for Firefox */
-}
-
-/* Default to dark theme */
-:root {
-  --radius: 0.625rem;
-  --background: oklch(0.13 0.028 261.692);
-  /* Dark slate */
-  --foreground: oklch(0.985 0.002 247.839);
-  /* Near white */
-  --card: oklch(0.21 0.034 264.665);
-  /* Darker slate */
-  --card-foreground: oklch(0.985 0.002 247.839);
-  --popover: oklch(0.21 0.034 264.665);
-  --popover-foreground: oklch(0.985 0.002 247.839);
-  --primary: #2dd4bf;
-  /* Teal from your Tailwind config */
-  --primary-foreground: oklch(0.21 0.034 264.665);
-  /* Dark for contrast */
-  --secondary: #64748b;
-  /* Slate from your Tailwind config */
-  --secondary-foreground: oklch(0.985 0.002 247.839);
-  --muted: oklch(0.278 0.033 256.848);
-  --muted-foreground: oklch(0.707 0.022 261.325);
-  --accent: oklch(0.278 0.033 256.848);
-  --accent-foreground: oklch(0.985 0.002 247.839);
-  --destructive: oklch(0.704 0.191 22.216);
-  /* Red for errors */
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #2dd4bf;
-  /* Teal for focus rings */
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.034 264.665);
-  --sidebar-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-primary: #2dd4bf;
-  /* Teal */
-  --sidebar-primary-foreground: oklch(0.21 0.034 264.665);
-  --sidebar-accent: oklch(0.278 0.033 256.848);
-  --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: #2dd4bf;
-}
-
-/* Optional light theme (commented out for now, enable as needed) */
-[data-theme="light"] {
-  --background: #f1f5f9;
-  /* Light gray from your Tailwind config */
-  --foreground: #1e293b;
-  /* Dark from your Tailwind config */
-  --card: oklch(1 0 0);
-  --card-foreground: #1e293b;
-  --popover: oklch(1 0 0);
-  --popover-foreground: #1e293b;
-  --primary: #2dd4bf;
-  --primary-foreground: #ffffff;
-  --secondary: #64748b;
-  --secondary-foreground: #ffffff;
-  --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: #64748b;
-  --accent: oklch(0.967 0.003 264.542);
-  --accent-foreground: #1e293b;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: #2dd4bf;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #1e293b;
-  --sidebar-primary: #2dd4bf;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #1e293b;
-  --sidebar-border: oklch(0.928 0.006 264.531);
-  --sidebar-ring: #2dd4bf;
 }
 
 @layer base {

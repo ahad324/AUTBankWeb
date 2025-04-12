@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Logo from "./common/Logo";
+import { Button } from "./ui/button";
 
 export default function Navbar() {
   return (
@@ -12,11 +13,13 @@ export default function Navbar() {
             <Logo />
           </div>
           <div>
-            <Link href="/login">
-              <button className="font-semibold cursor-pointer bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90">
-                Admin Login
-              </button>
-            </Link>
+            <Button
+              asChild
+              size="lg"
+              className="font-semibold text-base bg-primary hover:bg-primary/90 hover:scale-105 rounded-lg shadow-md transition-transform duration-200 ease-in-out"
+            >
+              <Link href="/login">Admin Login</Link>
+            </Button>
           </div>
         </div>
       </div>

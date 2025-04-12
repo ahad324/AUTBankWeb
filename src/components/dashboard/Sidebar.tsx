@@ -1,4 +1,3 @@
-// src/components/dashboard/Sidebar.tsx
 "use client";
 
 import { useState } from "react";
@@ -38,6 +37,10 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   };
 
   const isActive = (href: string) => pathname === href;
+
+  // Check if any sub-item in a section is active
+  const isSectionActive = (subItems: { href: string }[]) =>
+    subItems.some((subItem) => isActive(subItem.href));
 
   const sidebarItems = [
     {
@@ -142,9 +145,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         isOpen ? "translate-x-0" : "-translate-x-full",
         "md:w-64",
         "flex flex-col border-r border-sidebar-border shadow-lg",
-        // On mobile, position below the header (4rem = 64px)
-        "top-16 md:top-0", // 4rem header height on mobile, 0 on desktop
-        // Adjust height to account for the top offset on mobile
+        "top-16 md:top-0",
         "h-[calc(100vh-4rem)] md:h-screen"
       )}
     >
@@ -161,6 +162,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               role === "SuperAdmin" ||
               permissions.includes(item.permission)
             ) {
+              const sectionActive = isSectionActive(item.subItems);
               return (
                 <div key={item.name}>
                   <button
@@ -169,7 +171,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                       "flex items-center justify-between w-full p-2 rounded-lg",
                       "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                       "transition-all duration-300",
-                      openDropdown === item.name ? "bg-sidebar-accent" : ""
+                      openDropdown === item.name
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "",
+                      sectionActive && !openDropdown
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : ""
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -225,7 +232,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               "flex items-center justify-between w-full p-2 rounded-lg",
               "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               "transition-all duration-300",
-              openDropdown === "Profile/Settings" ? "bg-sidebar-accent" : ""
+              openDropdown === "Profile/Settings"
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "",
+              isSectionActive(profileItems) && !openDropdown
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : ""
             )}
           >
             <div className="flex items-center gap-3">

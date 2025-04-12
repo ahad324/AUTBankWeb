@@ -1,10 +1,11 @@
-// src/app/dashboard/layout.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuthStore } from "@/store/authStore";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Header from "@/components/dashboard/Header";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { isAuthenticated } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return null; // Prevent flash of content while redirecting
+  }
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 

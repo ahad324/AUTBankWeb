@@ -1,4 +1,3 @@
-// src/components/common/Skeleton.tsx
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -22,7 +21,8 @@ const Skeleton: React.FC<SkeletonProps> = ({
   if (!show) return null;
 
   const baseStyles = cn(
-    "animate-skeleton bg-gradient-to-r from-muted/50 via-muted/70 to-muted/50",
+    // Use CSS variables for skeleton gradient, tied to theme
+    "animate-skeleton bg-gradient-to-r from-skeleton-base via-skeleton-highlight to-skeleton-base",
     "bg-[length:200%_100%] bg-no-repeat",
     variant === "circle" && "rounded-full",
     variant === "rect" && "rounded-md",

@@ -1,4 +1,3 @@
-// src/components/common/FormSkeleton.tsx
 import Skeleton from "@/components/common/Skeleton";
 
 interface FormSkeletonProps {
@@ -9,7 +8,7 @@ export default function FormSkeleton({ fields = 4 }: FormSkeletonProps) {
   return (
     <div className="space-y-4">
       <Skeleton variant="text" width="15rem" height="2rem" />
-      <div className="space-y-4 p-6 border rounded-xl">
+      <div className="space-y-4 p-6 border rounded-xl border-border bg-card">
         {Array.from({ length: fields }).map((_, index) => (
           <div key={index} className="space-y-2">
             <Skeleton variant="text" width="8rem" height="1rem" />

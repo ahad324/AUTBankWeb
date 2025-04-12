@@ -1,4 +1,3 @@
-// src/components/common/TableSkeleton.tsx
 import Skeleton from "@/components/common/Skeleton";
 
 interface TableSkeletonProps {
@@ -11,8 +10,8 @@ export default function TableSkeleton({
   columns = 5,
 }: TableSkeletonProps) {
   return (
-    <div className="border rounded-md overflow-hidden">
-      <div className="bg-muted/50 p-4">
+    <div className="border rounded-md overflow-hidden border-border">
+      <div className="bg-card p-4">
         <Skeleton variant="text" width="10rem" height="1.5rem" />
       </div>
       <div className="divide-y divide-border">
