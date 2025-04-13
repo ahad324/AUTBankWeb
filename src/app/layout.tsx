@@ -3,7 +3,6 @@ import { ReactNode } from "react";
 import "@/app/globals.css";
 import { Inter } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
-import { ThemeProvider } from "@/components/ThemeProvider";
 import { QueryProvider } from "@/lib/queryClient";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "sonner";
@@ -21,9 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={`${inter.className}`}>
         <QueryProvider>
           <AuthProvider>
-            <ThemeProvider>
-              <ErrorBoundary>{children}</ErrorBoundary>
-            </ThemeProvider>
+            <ErrorBoundary>{children}</ErrorBoundary>
             <Toaster richColors />
           </AuthProvider>
         </QueryProvider>

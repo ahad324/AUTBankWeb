@@ -21,13 +21,20 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   fullscreen = false,
   className = "",
 }) => {
+  // Normalize text to an array
   const texts = Array.isArray(text) ? text : [text];
 
+  // Check if there's valid text to display (not empty string or empty array)
+  const hasText = texts.length > 0 && texts.every((t) => t.trim() !== "");
+
+  // Build the sequence for TypeAnimation only if there's text
   const sequence: (string | number)[] = [];
-  texts.forEach((t) => {
-    sequence.push(t);
-    sequence.push(pauseTime);
-  });
+  if (hasText) {
+    texts.forEach((t) => {
+      sequence.push(t);
+      sequence.push(pauseTime);
+    });
+  }
 
   // Convert boolean repeat value to number if necessary
   const repeatValue =
@@ -45,20 +52,24 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         className
       )}
     >
+      {/* Always show the spinner */}
       <div
         className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"
         aria-label="Loading Spinner"
       ></div>
 
-      <div className="text-primary text-xl font-mono">
-        <TypeAnimation
-          sequence={sequence}
-          speed={{ type: "keyStrokeDelayInMs", value: typingSpeed }}
-          repeat={repeatValue}
-          wrapper="span"
-          style={{ display: "inline-block" }}
-        />
-      </div>
+      {/* Conditionally show the TypeAnimation only if there's valid text */}
+      {hasText && (
+        <div className="text-primary text-xl font-mono">
+          <TypeAnimation
+            sequence={sequence}
+            speed={{ type: "keyStrokeDelayInMs", value: typingSpeed }}
+            repeat={repeatValue}
+            wrapper="span"
+            style={{ display: "inline-block" }}
+          />
+        </div>
+      )}
     </div>
   );
 };

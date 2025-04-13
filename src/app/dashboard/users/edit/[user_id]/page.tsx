@@ -27,7 +27,7 @@ export default function EditUser() {
     queryKey: ["user", user_id],
     queryFn: async () => {
       const response = await api.get(`/admins/users/${user_id}`);
-      return response.data.data.user;
+      return response.data.data;
     },
   });
 

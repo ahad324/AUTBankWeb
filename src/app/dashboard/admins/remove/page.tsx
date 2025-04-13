@@ -37,7 +37,7 @@ export default function RemoveAdmin() {
 
   const mutation = useMutation({
     mutationFn: (data: RemoveAdminFormData) =>
-      api.delete(`/admins/${data.adminId}`),
+      api.delete(`/admins/admins/${data.adminId}`),
     onSuccess: () => {
       toast.success("Admin removed successfully!");
       queryClient.invalidateQueries({ queryKey: ["admins"] });

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LoadingSpinner } from "../common/LoadingSpinner";
 import {
   UserCog,
   Users,
@@ -220,7 +221,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 </div>
               );
             }
-            return null;
+            return <LoadingSpinner text={""} key={item.name} />;
           })}
         </nav>
 

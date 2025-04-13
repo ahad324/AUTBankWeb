@@ -18,7 +18,7 @@ export default function UserDetails() {
     queryKey: ["user", userId],
     queryFn: async () => {
       const response = await api.get(`/admins/users/${userId}`);
-      return response.data.data;
+      return response.data;
     },
   });
 
@@ -30,7 +30,7 @@ export default function UserDetails() {
     );
   }
 
-  const user = data.user;
+  const user = data.data;
 
   return (
     <section>
