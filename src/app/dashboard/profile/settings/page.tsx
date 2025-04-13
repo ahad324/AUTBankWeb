@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import themesData from "@/config/themes.json";
+import themesData from "@/theme/themes.json";
 import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/utils";
 import { Palette } from "lucide-react";

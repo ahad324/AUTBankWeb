@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import themesData from "@/config/themes.json";
+import themesData from "@/theme/themes.json";
 
 interface ThemeContextType {
   theme: string;

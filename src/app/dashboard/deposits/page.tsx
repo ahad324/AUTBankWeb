@@ -1,14 +1,14 @@
-// src/app/dashboard/deposits/page.tsx
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import TableSkeleton from "@/components/common/TableSkeleton";
+import { useDebounce } from "@/hooks/useDebounce";
 
 type Deposit = {
   DepositID: number;
@@ -19,7 +19,14 @@ type Deposit = {
 };
 
 export default function ViewDeposits() {
+  const [tempUserId, setTempUserId] = useState("");
+  const debouncedUserId = useDebounce(tempUserId, 500);
   const [userId, setUserId] = useState("");
+
+  // Update userId when debouncedUserId changes
+  useEffect(() => {
+    setUserId(debouncedUserId);
+  }, [debouncedUserId]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["deposits", userId],
@@ -53,13 +60,13 @@ export default function ViewDeposits() {
   }
 
   return (
-    <section className="space-y-6">
+    <section>
       <h1 className="text-3xl font-bold text-foreground">View Deposits</h1>
       <div className="flex items-center gap-4 mb-6">
         <Input
           placeholder="Enter User ID to view deposits"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
+          value={tempUserId}
+          onChange={(e) => setTempUserId(e.target.value)}
           className="bg-background/80 backdrop-blur-md text-foreground border-input max-w-sm focus:ring-2 focus:ring-primary transition-all duration-300"
         />
       </div>

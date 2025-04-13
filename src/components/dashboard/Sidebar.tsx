@@ -75,10 +75,6 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       permission: "transaction:view",
       subItems: [
         { name: "View Transactions", href: "/dashboard/transactions" },
-        {
-          name: "Process Transaction",
-          href: "/dashboard/transactions/process",
-        },
       ],
     },
     {
