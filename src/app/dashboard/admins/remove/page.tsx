@@ -30,14 +30,14 @@ export default function RemoveAdmin() {
   const { data: admins } = useQuery({
     queryKey: ["admins"],
     queryFn: async () => {
-      const response = await api.get("/admins"); // Assuming this endpoint exists
+      const response = await api.get("/admins");
       return response.data.data.admins;
     },
   });
 
   const mutation = useMutation({
     mutationFn: (data: RemoveAdminFormData) =>
-      api.delete(`/admins/admins/${data.adminId}`),
+      api.delete(`/admins/${data.adminId}`),
     onSuccess: () => {
       toast.success("Admin removed successfully!");
       queryClient.invalidateQueries({ queryKey: ["admins"] });

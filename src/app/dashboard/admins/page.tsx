@@ -41,7 +41,7 @@ export default function Admins() {
   const { data, isLoading } = useQuery({
     queryKey: ["admins"],
     queryFn: async () => {
-      const response = await api.get("/admins/admins");
+      const response = await api.get("/admins");
       return response.data.data.admins;
     },
   });
