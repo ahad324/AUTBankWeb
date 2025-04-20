@@ -5,12 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store/authStore";
 import FormSkeleton from "@/components/common/FormSkeleton";
 
 export default function ViewProfile() {
-  const { adminId, username, role } = useAuthStore();
-
   const { data, isLoading, error } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -32,30 +29,30 @@ export default function ViewProfile() {
       <h1>My Profile</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Admin Information</CardTitle>
+          <CardTitle>{data?.Username}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <span className="font-semibold">Admin ID: </span>
-            {admin.AdminID || adminId}
+            <span className="text-muted-foreground">ID: </span>
+            <span className="text-foreground">{data?.AdminID}</span>
           </div>
           <div>
-            <span className="font-semibold">Username: </span>
-            {admin.Username || username}
+            <span className="text-muted-foreground">Email: </span>
+            <span className="text-foreground">{data?.Email}</span>
           </div>
           <div>
-            <span className="font-semibold">Email: </span>
-            {admin.Email}
+            <span className="text-muted-foreground">Role: </span>
+            <span className="text-foreground">
+              {data?.Role?.RoleName || "N/A"}
+            </span>
           </div>
           <div>
-            <span className="font-semibold">Role: </span>
-            {admin.RoleName || role}
-          </div>
-          <div>
-            <span className="font-semibold">Last Login: </span>
-            {admin.LastLogin
-              ? new Date(admin.LastLogin).toLocaleString()
-              : "N/A"}
+            <span className="text-muted-foreground">Last Login: </span>
+            <span className="text-foreground">
+              {admin.LastLogin
+                ? new Date(admin.LastLogin).toLocaleString()
+                : "N/A"}
+            </span>
           </div>
           {/* <div>
             <span className="font-semibold">Created At: </span>

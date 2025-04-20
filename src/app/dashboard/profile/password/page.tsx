@@ -8,88 +8,125 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import api from "@/lib/api";
+import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-const changePasswordSchema = z
+const updatePasswordSchema = z
   .object({
-    currentPassword: z.string().min(8).max(255),
-    newPassword: z.string().min(8).max(255),
-    confirmPassword: z.string().min(8).max(255),
+    currentPassword: z
+      .string()
+      .min(8, "Current password must be at least 8 characters"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
+    confirmPassword: z.string().min(8, "Please confirm your new password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords must match",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
-type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
 
-export default function ChangePassword() {
+export default function UpdatePassword() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
     reset,
-  } = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
+    formState: { errors, isSubmitting },
+  } = useForm<UpdatePasswordFormData>({
+    resolver: zodResolver(updatePasswordSchema),
   });
 
   const mutation = useMutation({
-    mutationFn: (data: ChangePasswordFormData) =>
-      api.put("/admins/me/password", {
+    mutationFn: (data: UpdatePasswordFormData) =>
+      apiService.updateAdminPassword({
         CurrentPassword: data.currentPassword,
         NewPassword: data.newPassword,
       }),
     onSuccess: () => {
-      toast.success("Password changed successfully!");
+      toast.success("Password updated successfully!");
       reset();
+      router.push("/dashboard/profile");
     },
-    onError: () => toast.error("Failed to change password"),
+    onError: (err: Error) =>
+      toast.error(err.message || "Failed to update password"),
   });
 
-  const onSubmit = (data: ChangePasswordFormData) => mutation.mutate(data);
+  const onSubmit = (data: UpdatePasswordFormData) => mutation.mutate(data);
 
   return (
-    <section>
-      <h1>Change Password</h1>
-      <Card>
+    <section className="py-6">
+      <h1 className="text-3xl font-bold text-foreground mb-6">
+        Change Password
+      </h1>
+      <Card className="bg-card shadow-md">
         <CardHeader>
           <CardTitle>Update Password</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <label className="text-muted-foreground">Current Password</label>
-              <Input {...register("currentPassword")} type="password" />
+              <Input
+                type="password"
+                {...register("currentPassword")}
+                className="bg-input text-foreground"
+              />
               {errors.currentPassword && (
-                <p className="text-destructive">
+                <p className="text-destructive text-sm">
                   {errors.currentPassword.message}
                 </p>
               )}
             </div>
             <div>
               <label className="text-muted-foreground">New Password</label>
-              <Input {...register("newPassword")} type="password" />
+              <Input
+                type="password"
+                {...register("newPassword")}
+                className="bg-input text-foreground"
+              />
               {errors.newPassword && (
-                <p className="text-destructive">{errors.newPassword.message}</p>
+                <p className="text-destructive text-sm">
+                  {errors.newPassword.message}
+                </p>
               )}
             </div>
             <div>
               <label className="text-muted-foreground">
                 Confirm New Password
               </label>
-              <Input {...register("confirmPassword")} type="password" />
+              <Input
+                type="password"
+                {...register("confirmPassword")}
+                className="bg-input text-foreground"
+              />
               {errors.confirmPassword && (
-                <p className="text-destructive">
+                <p className="text-destructive text-sm">
                   {errors.confirmPassword.message}
                 </p>
               )}
             </div>
-            <Button type="submit" disabled={isSubmitting || mutation.isPending}>
-              {isSubmitting || mutation.isPending
-                ? "Changing..."
-                : "Change Password"}
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                disabled={isSubmitting || mutation.isPending}
+                className="w-full"
+              >
+                {isSubmitting || mutation.isPending
+                  ? "Updating..."
+                  : "Update Password"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/dashboard/profile")}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

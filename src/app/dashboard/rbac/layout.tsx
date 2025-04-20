@@ -7,7 +7,10 @@ import { redirect } from "next/navigation";
 export default function RBACLayout({ children }: { children: ReactNode }) {
   const { permissions, role } = useAuthStore();
 
-  if (role !== "SuperAdmin" && !permissions.includes("rbac:manage")) {
+  if (
+    role !== "SuperAdmin" &&
+    !permissions.some((perm) => perm.PermissionName === "rbac:manage")
+  ) {
     redirect("/dashboard");
   }
 

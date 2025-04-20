@@ -11,6 +11,7 @@ interface LoadingSpinnerProps {
   repeat?: number | boolean; // repeat count or true for infinite
   fullscreen?: boolean; // full screen mode
   className?: string; // optional wrapper class
+  size?: "sm" | "md" | "lg"; // spinner and text size
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
@@ -20,6 +21,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   repeat = Infinity,
   fullscreen = false,
   className = "",
+  size = "md", // default to medium size
 }) => {
   // Normalize text to an array
   const texts = Array.isArray(text) ? text : [text];
@@ -44,6 +46,22 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       ? repeat
       : undefined;
 
+  // Define spinner and text sizes based on the size prop
+  const sizeStyles = {
+    sm: {
+      spinner: "w-8 h-8 border-2", // smaller spinner
+      text: "text-sm", // smaller text
+    },
+    md: {
+      spinner: "w-12 h-12 border-4", // default spinner
+      text: "text-xl", // default text
+    },
+    lg: {
+      spinner: "w-16 h-16 border-6", // larger spinner
+      text: "text-2xl", // larger text
+    },
+  };
+
   return (
     <div
       className={cn(
@@ -54,13 +72,16 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     >
       {/* Always show the spinner */}
       <div
-        className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"
+        className={cn(
+          "rounded-full border-primary border-t-transparent animate-spin",
+          sizeStyles[size].spinner
+        )}
         aria-label="Loading Spinner"
       ></div>
 
       {/* Conditionally show the TypeAnimation only if there's valid text */}
       {hasText && (
-        <div className="text-primary text-xl font-mono">
+        <div className={cn("text-primary font-mono", sizeStyles[size].text)}>
           <TypeAnimation
             sequence={sequence}
             speed={{ type: "keyStrokeDelayInMs", value: typingSpeed }}

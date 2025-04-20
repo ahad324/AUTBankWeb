@@ -7,7 +7,10 @@ import { redirect } from "next/navigation";
 export default function UsersLayout({ children }: { children: ReactNode }) {
   const { permissions, role } = useAuthStore();
 
-  if (role !== "SuperAdmin" && !permissions.includes("user:view")) {
+  if (
+    role !== "SuperAdmin" &&
+    !permissions.some((perm) => perm.PermissionName === "user:manage")
+  ) {
     redirect("/dashboard");
   }
 

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Menu, LogOut, Bell, X, MoreVertical } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
-import { useWebSocket } from "@/lib/useWebSocket";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import {
   Popover,
   PopoverContent,
@@ -62,9 +62,14 @@ export default function Header({
     setNotifications([]);
   };
 
-  const handleLogout = () => {
-    clearAuth();
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      clearAuth();
+      router.push("/login");
+      toast.success("Logged out successfully!");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to log out");
+    }
   };
 
   return (
@@ -119,9 +124,9 @@ export default function Header({
                   {/* Admin Info */}
                   <div className="flex items-center gap-2 bg-sidebar-accent/30 px-4 py-2 rounded-lg">
                     <span className="text-sidebar-foreground font-medium text-sm">
-                      {username || `Admin ${adminId}`} •{" "}
+                      {username || `${adminId}`} •{" "}
                       <span className="text-sidebar-primary">
-                        {role || "Admin"}
+                        {role || "No Role"}
                       </span>
                     </span>
                   </div>
@@ -170,8 +175,10 @@ export default function Header({
             {/* Admin info */}
             <div className="flex items-center gap-2 bg-sidebar-accent/30 px-4 py-1 rounded-full border border-sidebar-border/50">
               <span className="text-sidebar-foreground font-medium text-sm">
-                {username || `Admin ${adminId}`} •{" "}
-                <span className="text-sidebar-primary">{role || "Admin"}</span>
+                {username || `${adminId}`} •{" "}
+                <span className="text-sidebar-primary">
+                  {role || "No Role"}
+                </span>
               </span>
             </div>
 

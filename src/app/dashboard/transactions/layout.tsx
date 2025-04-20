@@ -11,7 +11,10 @@ export default function TransactionsLayout({
 }) {
   const { permissions, role } = useAuthStore();
 
-  if (role !== "SuperAdmin" && !permissions.includes("transaction:view")) {
+  if (
+    role !== "SuperAdmin" &&
+    !permissions.some((perm) => perm.PermissionName === "transaction:view")
+  ) {
     redirect("/dashboard");
   }
 

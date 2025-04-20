@@ -1,11 +1,10 @@
 // src/components/ui/DataTable.tsx
-"use client";
-
+import * as React from "react";
 import {
   ColumnDef,
-  useReactTable,
-  getCoreRowModel,
   flexRender,
+  getCoreRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -15,18 +14,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
-interface DataTableProps<T> {
-  columns: ColumnDef<T>[];
-  data: T[];
+interface DataTableProps<TData> {
+  columns: ColumnDef<TData>[];
+  data: TData[];
   rowClassName?: string;
 }
 
-export function DataTable<T>({
+export function DataTable<TData>({
   columns,
   data,
   rowClassName,
-}: DataTableProps<T>) {
+}: DataTableProps<TData>) {
   const table = useReactTable({
     data,
     columns,
@@ -34,16 +34,13 @@ export function DataTable<T>({
   });
 
   return (
-    <div className="border rounded-md">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="bg-muted/50">
+            <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="text-foreground font-semibold"
-                >
+                <TableHead key={header.id}>
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -56,14 +53,15 @@ export function DataTable<T>({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.length ? (
+          {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                className={`border-border ${rowClassName || ""}`}
+                data-state={row.getIsSelected() && "selected"}
+                className={cn(rowClassName)}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="text-foreground">
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -71,11 +69,8 @@ export function DataTable<T>({
             ))
           ) : (
             <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="text-center text-muted-foreground py-4"
-              >
-                No data available
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results found.
               </TableCell>
             </TableRow>
           )}

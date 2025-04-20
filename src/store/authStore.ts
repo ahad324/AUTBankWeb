@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import api from "@/lib/api";
+import { Permission, GetAdminMeResponse } from "@/types/api";
 
 interface AuthState {
   accessToken: string | null;
@@ -9,15 +10,16 @@ interface AuthState {
   adminId: number | null;
   username: string | null;
   role: string | null;
-  permissions: string[];
+  permissions: Permission[];
   isAuthenticated: boolean;
+  isFetchingDetails: boolean;
   setAuth: (data: {
     access_token: string;
     refresh_token: string;
-    AdminID: number;
-    Username: string;
-    Role: { RoleName: string };
-    Permissions: { PermissionName: string }[];
+    admin_id: number;
+    username: string;
+    role: { RoleName: string };
+    permissions: Permission[];
   }) => void;
   clearAuth: () => void;
   fetchAdminDetails: () => Promise<void>;
@@ -25,7 +27,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       accessToken: null,
       refreshToken: null,
       adminId: null,
@@ -33,21 +35,22 @@ export const useAuthStore = create<AuthState>()(
       role: null,
       permissions: [],
       isAuthenticated: false,
+      isFetchingDetails: false,
       setAuth: ({
         access_token,
         refresh_token,
-        AdminID,
-        Username,
-        Role,
-        Permissions,
+        admin_id,
+        username,
+        role,
+        permissions,
       }) => {
         set({
           accessToken: access_token,
           refreshToken: refresh_token,
-          adminId: AdminID,
-          username: Username,
-          role: Role.RoleName,
-          permissions: Permissions.map((perm) => perm.PermissionName),
+          adminId: admin_id,
+          username,
+          role: role.RoleName,
+          permissions,
           isAuthenticated: true,
         });
       },
@@ -61,23 +64,26 @@ export const useAuthStore = create<AuthState>()(
           role: null,
           permissions: [],
           isAuthenticated: false,
+          isFetchingDetails: false,
         });
       },
       fetchAdminDetails: async () => {
+        if (get().isFetchingDetails) return;
+        set({ isFetchingDetails: true });
         try {
-          const response = await api.get("/admins/me");
-          const { AdminID, Username, Role, Permissions } = response.data.data;
+          const response = await api.get<GetAdminMeResponse>("/admins/me");
+          const { data } = response.data;
           set({
-            adminId: AdminID,
-            username: Username,
-            role: Role.RoleName,
-            permissions: Permissions.map(
-              (perm: { PermissionName: string }) => perm.PermissionName
-            ),
+            adminId: data.AdminID,
+            username: data.Username,
+            role: data.Role?.RoleName || "",
+            permissions: data.Permissions,
             isAuthenticated: true,
+            isFetchingDetails: false,
           });
         } catch (err) {
-          set({ isAuthenticated: false });
+          console.error("Failed to fetch admin details:", err);
+          set({ isAuthenticated: false, isFetchingDetails: false });
           throw err;
         }
       },

@@ -1,60 +1,56 @@
-// src/app/dashboard/loans/page.tsx
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/button";
-import api from "@/lib/api";
+import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
 import TableSkeleton from "@/components/common/TableSkeleton";
-
-type Loan = {
-  LoanID: number;
-  UserID: number;
-  Amount: number;
-  Status: string;
-  CreatedAt: string;
-};
+import { Loan } from "@/types/api";
+import { formatCurrency } from "@/lib/utils";
 
 export default function Loans() {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const perPage = 10;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["loans"],
-    queryFn: async () => {
-      const response = await api.get("/admins/loans");
-      return response.data.data.loans;
-    },
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["loans", page],
+    queryFn: () => apiService.getLoans({ page, per_page: perPage }),
   });
 
   const approveMutation = useMutation({
-    mutationFn: (loanId: number) => api.put(`/admins/loans/${loanId}/approve`),
+    mutationFn: (loanId: number) => apiService.approveLoan(loanId),
     onSuccess: () => {
       toast.success("Loan approved successfully!");
       queryClient.invalidateQueries({ queryKey: ["loans"] });
     },
-    onError: () => toast.error("Failed to approve loan"),
+    onError: (err: Error) =>
+      toast.error(err.message || "Failed to approve loan"),
   });
 
   const rejectMutation = useMutation({
-    mutationFn: (loanId: number) => api.put(`/admins/loans/${loanId}/reject`),
+    mutationFn: (loanId: number) => apiService.rejectLoan(loanId),
     onSuccess: () => {
       toast.success("Loan rejected successfully!");
       queryClient.invalidateQueries({ queryKey: ["loans"] });
     },
-    onError: () => toast.error("Failed to reject loan"),
+    onError: (err: Error) =>
+      toast.error(err.message || "Failed to reject loan"),
   });
 
   const columns: ColumnDef<Loan>[] = [
     { accessorKey: "LoanID", header: "ID" },
     { accessorKey: "UserID", header: "User ID" },
+    { accessorKey: "LoanTypeName", header: "Loan Type" },
     {
-      accessorKey: "Amount",
+      accessorKey: "LoanAmount",
       header: "Amount",
-      cell: ({ row }) => `$${row.original.Amount}`,
+      cell: ({ row }) => formatCurrency(row.original.LoanAmount),
     },
-    { accessorKey: "Status", header: "Status" },
+    { accessorKey: "LoanStatus", header: "Status" },
     {
       accessorKey: "CreatedAt",
       header: "Created At",
@@ -64,7 +60,7 @@ export default function Loans() {
       id: "actions",
       cell: ({ row }) => (
         <div className="flex gap-2">
-          {row.original.Status === "Pending" && (
+          {row.original.LoanStatus === "Pending" && (
             <>
               <Button
                 onClick={() => approveMutation.mutate(row.original.LoanID)}
@@ -86,12 +82,52 @@ export default function Loans() {
     },
   ];
 
-  if (isLoading) return <TableSkeleton columns={6} rows={5} />;
+  if (error) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-6">
+        <p className="text-destructive text-xl font-medium">
+          Failed to load loans
+        </p>
+        <Button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["loans"] })}
+          variant="outline"
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <section>
-      <h1>Manage Loans</h1>
-      <DataTable columns={columns} data={data || []} />
+    <section className="py-6">
+      <h1 className="text-3xl font-bold text-foreground mb-6">Manage Loans</h1>
+      {isLoading ? (
+        <TableSkeleton columns={7} rows={5} />
+      ) : (
+        <>
+          <DataTable
+            columns={columns}
+            data={data?.items || []}
+            rowClassName="bg-card rounded-lg shadow-md"
+          />
+          <div className="flex justify-between mt-4">
+            <Button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              variant="outline"
+            >
+              Previous
+            </Button>
+            <Button
+              disabled={page >= (data?.total_pages || 1)}
+              onClick={() => setPage((p) => p + 1)}
+              variant="outline"
+            >
+              Next
+            </Button>
+          </div>
+        </>
+      )}
     </section>
   );
 }

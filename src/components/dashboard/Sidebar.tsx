@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LoadingSpinner } from "../common/LoadingSpinner";
 import {
   UserCog,
   Users,
@@ -64,10 +63,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       name: "Users Management",
       icon: <Users className="h-5 w-5" />,
       permission: "user:view",
-      subItems: [
-        { name: "View Users", href: "/dashboard/users" },
-        { name: "Add User", href: "/dashboard/users/add" },
-      ],
+      subItems: [{ name: "View Users", href: "/dashboard/users" }],
     },
     {
       name: "Transactions",
@@ -152,12 +148,15 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       </div>
 
       {/* Scrollable navigation section with constrained height */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar">
+      <div className="flex-1 flex flex-col justify-between overflow-y-auto hide-scrollbar">
         <nav className="p-4 space-y-2">
           {sidebarItems.map((item) => {
+            // Show item if user is SuperAdmin or has the required permission
             if (
               role === "SuperAdmin" ||
-              permissions.includes(item.permission)
+              permissions.some(
+                (perm) => perm.PermissionName === item.permission
+              )
             ) {
               const sectionActive = isSectionActive(item.subItems);
               return (
@@ -217,11 +216,11 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 </div>
               );
             }
-            return <LoadingSpinner text={""} key={item.name} />;
+            return null; // Skip rendering if permission is not met
           })}
         </nav>
 
-        {/* Profile/Settings section (also scrollable within the same container) */}
+        {/* Profile/Settings section (always visible) */}
         <div className="p-4 border-t border-sidebar-border">
           <button
             onClick={() => handleDropdownToggle("Profile/Settings")}

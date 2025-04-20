@@ -1,19 +1,19 @@
+// src/app/login/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/store/authStore";
-import api from "@/lib/api";
+import { apiService } from "@/services/apiService";
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AxiosError } from "axios";
 
 const loginSchema = z.object({
   email: z
@@ -30,8 +30,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const { setAuth, accessToken } = useAuthStore();
+  const { setAuth, accessToken, clearAuth } = useAuthStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
 
   const {
     register,
@@ -53,34 +55,36 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const response = await api.post("/admins/login", {
+      clearAuth();
+
+      const response = await apiService.loginAdmin({
         Email: data.email,
         Password: data.password,
       });
 
       const {
-        access_token,
-        refresh_token,
         AdminID,
         Username,
         Role,
         Permissions,
-      } = response.data.data;
+        access_token,
+        refresh_token,
+      } = response;
+
       setAuth({
         access_token,
         refresh_token,
-        AdminID,
-        Username,
-        Role,
-        Permissions,
+        admin_id: AdminID,
+        username: Username,
+        role: Role,
+        permissions: Permissions,
       });
+
       toast.success("Login successful!");
       router.push("/dashboard");
     } catch (err: unknown) {
-      const error = err as AxiosError<{ message?: string }>;
-      const errorMessage =
-        error?.response?.data?.message || "Invalid credentials";
-      toast.error(errorMessage);
+      const message = err instanceof Error ? err.message : "Login failed";
+      toast.error(message);
     }
   };
 
@@ -88,6 +92,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+      {error === "session_expired" && (
+        <p className="text-destructive">
+          Your session has expired. Please log in again.
+        </p>
+      )}
       <div className="mb-8 flex flex-col items-center">
         <Image
           src="/logo.png"

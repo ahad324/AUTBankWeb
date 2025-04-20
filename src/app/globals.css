@@ -104,6 +104,26 @@ h1 {
   @apply font-bold text-foreground mb-6 text-3xl;
 }
 
+.rdrCalendarWrapper {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.rdrDayToday .rdrDayNumber span {
+  color: var(--primary) !important;
+}
+
+.rdrDayNumber span {
+  color: var(--foreground);
+}
+
+.rdrSelected,
+.rdrInRange,
+.rdrStartEdge,
+.rdrEndEdge {
+  background: var(--primary) !important;
+}
+
 *:-webkit-scrollbar {
   display: none;
 }
