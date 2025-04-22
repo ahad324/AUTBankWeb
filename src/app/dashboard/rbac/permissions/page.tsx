@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,41 +24,64 @@ import {
   CreatePermissionRequest,
   UpdatePermissionRequest,
 } from "@/types/api";
+import { useDebounce } from "@/hooks/useDebounce";
+import { motion, AnimatePresence } from "framer-motion";
+import { Trash2, Edit, Shield } from "lucide-react";
 
 const permissionSchema = z.object({
-  permissionName: z
+  PermissionName: z
     .string()
-    .min(3, "Permission name must be at least 3 characters"),
-  description: z.string().optional(),
+    .min(3, "Permission name must be at least 3 characters")
+    .max(50),
+  Description: z.string().max(255).optional(),
 });
 
 type PermissionFormData = z.infer<typeof permissionSchema>;
 
 export default function Permissions() {
   const queryClient = useQueryClient();
-  const [page, setPage] = useState(1);
-  const perPage = 10;
   const [editPermission, setEditPermission] = useState<Permission | null>(null);
+  const [deletePermission, setDeletePermission] = useState<Permission | null>(
+    null
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    setValue,
+    formState: { errors, isSubmitting },
   } = useForm<PermissionFormData>({
     resolver: zodResolver(permissionSchema),
     defaultValues: editPermission
       ? {
-          permissionName: editPermission.PermissionName,
-          description: editPermission.Description || "",
+          PermissionName: editPermission.PermissionName,
+          Description: editPermission.Description,
         }
       : {},
   });
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["permissions", page],
-    queryFn: () => apiService.getPermissions({ page, per_page: perPage }),
+    queryKey: ["permissions"],
+    queryFn: () => apiService.getPermissions(),
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
   });
+
+  // Client-side filtering
+  const filteredPermissions =
+    data?.items.filter(
+      (permission: Permission) =>
+        permission.PermissionName.toLowerCase().includes(
+          debouncedSearchTerm.toLowerCase()
+        ) ||
+        (permission.Description &&
+          permission.Description.toLowerCase().includes(
+            debouncedSearchTerm.toLowerCase()
+          ))
+    ) || [];
 
   const createMutation = useMutation({
     mutationFn: (data: CreatePermissionRequest) =>
@@ -72,8 +96,8 @@ export default function Permissions() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: UpdatePermissionRequest & { permissionId: number }) =>
-      apiService.updatePermission(data.permissionId, {
+    mutationFn: (data: UpdatePermissionRequest & { PermissionID: number }) =>
+      apiService.updatePermission(data.PermissionID, {
         PermissionName: data.PermissionName,
         Description: data.Description,
       }),
@@ -93,6 +117,7 @@ export default function Permissions() {
     onSuccess: () => {
       toast.success("Permission deleted successfully!");
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      setDeletePermission(null);
     },
     onError: (err: Error) =>
       toast.error(err.message || "Failed to delete permission"),
@@ -108,22 +133,27 @@ export default function Permissions() {
         <div className="flex gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => {
               setEditPermission(row.original);
               reset({
-                permissionName: row.original.PermissionName,
-                description: row.original.Description || "",
+                PermissionName: row.original.PermissionName,
+                Description: row.original.Description,
               });
             }}
+            className="hover:bg-primary/10 border-primary text-primary"
+            aria-label={`Edit permission ${row.original.PermissionName}`}
           >
-            Edit
+            <Edit className="h-4 w-4" />
           </Button>
           <Button
-            variant="destructive"
-            onClick={() => deleteMutation.mutate(row.original.PermissionID)}
-            disabled={deleteMutation.isPending}
+            variant="outline"
+            size="sm"
+            onClick={() => setDeletePermission(row.original)}
+            className="hover:bg-destructive/10 border-destructive text-destructive"
+            aria-label={`Delete permission ${row.original.PermissionName}`}
           >
-            Delete
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       ),
@@ -134,19 +164,20 @@ export default function Permissions() {
     if (editPermission) {
       updateMutation.mutate({
         ...data,
-        permissionId: editPermission.PermissionID,
+        PermissionID: editPermission.PermissionID,
       });
     } else {
-      createMutation.mutate({
-        PermissionName: data.permissionName,
-        Description: data.description,
-      });
+      createMutation.mutate(data);
     }
   };
 
   if (error) {
     return (
-      <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-[50vh] flex flex-col items-center justify-center space-y-6"
+      >
         <p className="text-destructive text-xl font-medium">
           Failed to load permissions
         </p>
@@ -155,100 +186,171 @@ export default function Permissions() {
             queryClient.invalidateQueries({ queryKey: ["permissions"] })
           }
           variant="outline"
+          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
         >
           Retry
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <section className="py-6">
-      <h1 className="text-3xl font-bold text-foreground mb-6">
-        Manage Permissions
-      </h1>
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="py-6"
+    >
+      <header className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-foreground flex items-center">
+          <Shield className="h-6 w-6 text-primary mr-2" />
+          Manage Permissions
+        </h1>
+        <Button
+          onClick={() => {
+            setEditPermission(null);
+            reset({ PermissionName: "", Description: "" });
+          }}
+          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+        >
+          Add Permission
+        </Button>
+      </header>
+      <div className="mb-6">
+        <Input
+          placeholder="Search permissions by name or description..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-input text-foreground rounded-lg shadow-sm"
+          aria-label="Search permissions"
+        />
+      </div>
       {isLoading ? (
         <TableSkeleton columns={4} rows={5} />
       ) : (
-        <>
-          <Button
-            onClick={() => {
-              setEditPermission(null);
-              reset({ permissionName: "", description: "" });
-            }}
-            className="mb-4"
-          >
-            Add Permission
-          </Button>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
           <DataTable
             columns={columns}
-            data={data?.items || []}
-            rowClassName="bg-card rounded-lg shadow-md"
+            data={filteredPermissions}
+            rowClassName="bg-card rounded-lg shadow-md hover:bg-muted/30 transition-colors duration-200"
           />
-          <div className="flex justify-between mt-4">
-            <Button
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
-              variant="outline"
-            >
-              Previous
-            </Button>
-            <Button
-              disabled={page >= (data?.total_pages || 1)}
-              onClick={() => setPage((p) => p + 1)}
-              variant="outline"
-            >
-              Next
-            </Button>
-          </div>
-        </>
+        </motion.div>
       )}
-      <Dialog
-        open={editPermission !== null || !editPermission}
-        onOpenChange={() => setEditPermission(null)}
-      >
-        <DialogContent className="bg-background rounded-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {editPermission ? "Edit Permission" : "Add Permission"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="text-muted-foreground">Permission Name</label>
-              <Input
-                {...register("permissionName")}
-                className="bg-input text-foreground"
-              />
-              {errors.permissionName && (
-                <p className="text-destructive text-sm">
-                  {errors.permissionName.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="text-muted-foreground">Description</label>
-              <Input
-                {...register("description")}
-                className="bg-input text-foreground"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending || updateMutation.isPending}
-              className="w-full"
-            >
-              {editPermission
-                ? updateMutation.isPending
-                  ? "Updating..."
-                  : "Update Permission"
-                : createMutation.isPending
-                ? "Creating..."
-                : "Create Permission"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </section>
+      <AnimatePresence>
+        {(editPermission || !editPermission) && (
+          <Dialog
+            open={editPermission !== null}
+            onOpenChange={() => setEditPermission(null)}
+          >
+            <DialogContent className="bg-background rounded-lg shadow-xl max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center">
+                  <Edit className="h-5 w-5 text-primary mr-2" />
+                  {editPermission ? "Edit Permission" : "Create Permission"}
+                </DialogTitle>
+              </DialogHeader>
+              <motion.form
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                onSubmit={handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                <div>
+                  <label className="text-muted-foreground">
+                    Permission Name
+                  </label>
+                  <Input
+                    {...register("PermissionName")}
+                    className="bg-input text-foreground rounded-lg shadow-sm"
+                    aria-invalid={!!errors.PermissionName}
+                  />
+                  {errors.PermissionName && (
+                    <p className="text-destructive text-sm">
+                      {errors.PermissionName.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-muted-foreground">Description</label>
+                  <Input
+                    {...register("Description")}
+                    className="bg-input text-foreground rounded-lg shadow-sm"
+                    aria-invalid={!!errors.Description}
+                  />
+                  {errors.Description && (
+                    <p className="text-destructive text-sm">
+                      {errors.Description.message}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  type="submit"
+                  disabled={
+                    isSubmitting ||
+                    createMutation.isPending ||
+                    updateMutation.isPending
+                  }
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                >
+                  {isSubmitting ||
+                  createMutation.isPending ||
+                  updateMutation.isPending
+                    ? editPermission
+                      ? "Updating..."
+                      : "Creating..."
+                    : editPermission
+                    ? "Update Permission"
+                    : "Create Permission"}
+                </Button>
+              </motion.form>
+            </DialogContent>
+          </Dialog>
+        )}
+        {deletePermission && (
+          <Dialog
+            open={!!deletePermission}
+            onOpenChange={() => setDeletePermission(null)}
+          >
+            <DialogContent className="bg-background rounded-lg shadow-xl max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center">
+                  <Trash2 className="h-5 w-5 text-destructive mr-2" />
+                  Confirm Deletion
+                </DialogTitle>
+              </DialogHeader>
+              <p className="text-muted-foreground">
+                Are you sure you want to delete the permission &quot;
+                {deletePermission.PermissionName}&quot; (ID:{" "}
+                {deletePermission.PermissionID})? This action cannot be undone.
+              </p>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeletePermission(null)}
+                  className="hover:bg-muted"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() =>
+                    deleteMutation.mutate(deletePermission.PermissionID)
+                  }
+                  disabled={deleteMutation.isPending}
+                  className="bg-gradient-to-r from-destructive to-destructive/80 hover:from-destructive/90 hover:to-destructive/70"
+                >
+                  {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+    </motion.section>
   );
 }

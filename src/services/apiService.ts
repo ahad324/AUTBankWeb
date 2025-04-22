@@ -339,8 +339,8 @@ export const apiService = {
     data: RevokePermissionRequest
   ): Promise<RevokePermissionResponse["data"]> =>
     handleResponse(
-      await api.delete<RevokePermissionResponse>(
-        `/rbac/role_permissions?RoleID=${data.RoleID}&PermissionID=${data.PermissionID}`
-      )
+      await api.delete<RevokePermissionResponse>("/rbac/role_permissions", {
+        data,
+      })
     ),
 };

@@ -25,7 +25,8 @@ interface HeaderProps {
 type Notification =
   | { type: "transaction"; data: { TransactionID: number; Amount: number } }
   | { type: "loan"; data: { LoanID: number } }
-  | { type: "user"; data: { Username: string } };
+  | { type: "user"; data: { Username: string } }
+  | { type: "connection_status"; data: { status: string; entity_id: number } };
 
 export default function Header({
   toggleSidebar,
@@ -233,6 +234,16 @@ export default function Header({
                               </span>
                             </p>
                           )}
+                          {notification.type === "connection_status" && (
+                            <p className="text-foreground">
+                              Connection status:{" "}
+                              <span className="text-primary font-semibold">
+                                {notification.data.status}
+                              </span>{" "}
+                              (Entity ID: {notification.data.entity_id})
+                            </p>
+                          )}
+
                           {notification.type === "loan" && (
                             <p className="text-foreground">
                               Loan: ID{" "}
@@ -249,9 +260,12 @@ export default function Header({
                               </span>
                             </p>
                           )}
-                          {!["transaction", "loan", "user"].includes(
-                            notification.type
-                          ) && (
+                          {![
+                            "transaction",
+                            "loan",
+                            "user",
+                            "connection_status",
+                          ].includes(notification.type) && (
                             <p className="text-foreground">
                               {JSON.stringify(notification)}
                             </p>

@@ -101,7 +101,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       subItems: [
         { name: "Manage Roles", href: "/dashboard/rbac/roles" },
         { name: "Manage Permissions", href: "/dashboard/rbac/permissions" },
-        { name: "Assign Roles", href: "/dashboard/rbac/assign" },
+        { name: "Assign Permissions", href: "/dashboard/rbac/assign" },
       ],
     },
   ];

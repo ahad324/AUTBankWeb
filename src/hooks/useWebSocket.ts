@@ -73,7 +73,7 @@ export function useWebSocket() {
   useEffect(() => {
     const ws = connectWebSocket();
     return () => ws?.close();
-  }, [connectWebSocket]);
+  }, []);
 
   return { notifications, clearNotifications: () => setNotifications([]) };
 }
