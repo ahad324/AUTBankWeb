@@ -19,7 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ViewDeposits() {
   const [tempUserId, setTempUserId] = useState("");

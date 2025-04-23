@@ -4,6 +4,7 @@ import { ApiResponse, PaginatedResponse } from "./responses";
 export interface Transaction {
   TransactionID: number;
   UserID: number;
+  Username: string;
   Amount: number;
   TransactionType: "Deposit" | "Transfer" | "Withdrawal";
   Status: string;
@@ -11,6 +12,7 @@ export interface Transaction {
   CreatedAt: string;
   UpdatedAt: string;
   ReceiverID?: number | null;
+  ReceiverUsername?: string | null;
 }
 
 // GET /api/v1/transactions

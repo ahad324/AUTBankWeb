@@ -2,94 +2,97 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
+import { Transaction } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { Transaction } from "@/types/api";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import Link from "next/link";
 
-interface TransactionDetailProps {
+export default function TransactionDetail({
+  params,
+}: {
   params: { transaction_id: string };
-}
-
-export default function TransactionDetail({ params }: TransactionDetailProps) {
+}) {
   const router = useRouter();
-  const transactionId = parseInt(params.transaction_id);
-
-  const { data, isLoading, error } = useQuery<Transaction>({
-    queryKey: ["transaction", transactionId],
-    queryFn: () => apiService.getTransactionById(transactionId),
-    enabled: !isNaN(transactionId),
+  const { data, isLoading } = useQuery<Transaction>({
+    queryKey: ["transaction", params.transaction_id],
+    queryFn: () => apiService.getTransactionById(Number(params.transaction_id)),
   });
 
   if (isLoading)
-    return <LoadingSpinner text="Loading Transaction Details..." />;
-  if (error) {
-    toast.error(error.message || "Failed to load transaction details");
+    return <div className="text-center py-10 text-foreground">Loading...</div>;
+
+  if (!data)
     return (
-      <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-6">
-        <p className="text-destructive text-xl font-medium">
-          Failed to load transaction
-        </p>
-        <Button
-          onClick={() => router.push("/dashboard/transactions")}
-          variant="outline"
-        >
-          Back to Transactions
-        </Button>
+      <div className="text-center py-10 text-destructive">
+        Transaction not found
       </div>
     );
-  }
 
   return (
     <section className="py-6">
-      <h1 className="text-3xl font-bold text-foreground mb-6">
-        Transaction Details
-      </h1>
-      <Card className="bg-card shadow-md">
+      <Button variant="ghost" onClick={() => router.back()}>
+        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Transactions
+      </Button>
+      <Card className="mt-4 bg-gradient-to-br from-card to-muted/30 shadow-lg">
         <CardHeader>
-          <CardTitle>Transaction ID: {data?.TransactionID}</CardTitle>
+          <CardTitle className="text-2xl font-bold text-foreground">
+            Transaction #{data.TransactionID}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <span className="text-muted-foreground">User ID: </span>
-            <span className="text-foreground">{data?.UserID}</span>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-muted-foreground">Type</p>
+              <p className="text-foreground font-semibold">
+                {data.TransactionType}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Amount</p>
+              <p className="text-foreground font-semibold">
+                {formatCurrency(data.Amount)}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Status</p>
+              <p className="text-foreground font-semibold">{data.Status}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Date</p>
+              <p className="text-foreground font-semibold">
+                {new Date(data.CreatedAt).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">User</p>
+              <Link
+                href={`/dashboard/users/${data.UserID}`}
+                className="text-primary hover:underline font-semibold"
+              >
+                {data.Username} (ID: {data.UserID})
+              </Link>
+            </div>
+            {data.ReceiverID && (
+              <div>
+                <p className="text-muted-foreground">Receiver</p>
+                <Link
+                  href={`/dashboard/users/${data.ReceiverID}`}
+                  className="text-primary hover:underline font-semibold"
+                >
+                  {data.ReceiverUsername} (ID: {data.ReceiverID})
+                </Link>
+              </div>
+            )}
           </div>
-          <div>
-            <span className="text-muted-foreground">Amount: </span>
-            <span className="text-foreground">
-              {formatCurrency(data?.Amount || 0)}
-            </span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Type: </span>
-            <span className="text-foreground">{data?.TransactionType}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Status: </span>
-            <span className="text-foreground">{data?.Status}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Description: </span>
-            <span className="text-foreground">
-              {data?.Description || "N/A"}
-            </span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Created At: </span>
-            <span className="text-foreground">
-              {new Date(data?.CreatedAt || "").toLocaleString()}
-            </span>
-          </div>
-          <Button
-            onClick={() => router.push("/dashboard/transactions")}
-            variant="outline"
-            className="mt-4"
-          >
-            Back to Transactions
-          </Button>
+          {data.Description && (
+            <div>
+              <p className="text-muted-foreground">Description</p>
+              <p className="text-foreground">{data.Description}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </section>
