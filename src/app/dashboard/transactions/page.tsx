@@ -8,16 +8,19 @@ import { DataTable } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Download, RefreshCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Download,
+  RefreshCcw,
+  DollarSign,
+} from "lucide-react";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Card, CardContent } from "@/components/ui/card";
 import { ColumnDef } from "@tanstack/react-table";
+import { motion } from "framer-motion";
 
-// Define filter state interface
 interface Filters {
   page: number;
   per_page: number;
@@ -28,28 +31,28 @@ interface Filters {
   end_date: string;
   sort_by: string;
   order: string;
+  [key: string]: string | number;
 }
 
-// Clean filters to exclude empty values
 const cleanFilters = (filters: Filters) => {
-  const cleaned: Partial<Filters> = {
+  const cleaned: { [key: string]: string | number } = {
     page: filters.page,
     per_page: filters.per_page,
+    sort_by: filters.sort_by,
+    order: filters.order,
   };
-  if (filters.transaction_type)
-    cleaned.transaction_type = filters.transaction_type;
-  if (filters.transaction_status)
-    cleaned.transaction_status = filters.transaction_status;
+
+  // Only include non-empty filters
+  if (filters.transaction_type) cleaned.transaction_type = filters.transaction_type;
+  if (filters.transaction_status) cleaned.transaction_status = filters.transaction_status;
   if (filters.user_id) cleaned.user_id = filters.user_id;
   if (filters.start_date) cleaned.start_date = filters.start_date;
   if (filters.end_date) cleaned.end_date = filters.end_date;
-  if (filters.sort_by) cleaned.sort_by = filters.sort_by;
-  if (filters.order) cleaned.order = filters.order;
+
   return cleaned;
 };
 
 export default function Transactions() {
-  // Temporary filter inputs for debouncing
   const [tempFilters, setTempFilters] = useState({
     transaction_type: "",
     transaction_status: "",
@@ -58,13 +61,21 @@ export default function Transactions() {
     end_date: "",
   });
 
-  // Debounced filter values
+  const handleClearFilters = () => {
+    setTempFilters({
+      transaction_type: "",
+      transaction_status: "",
+      user_id: "",
+      start_date: "",
+      end_date: "",
+    });
+  };
+
   const debouncedFilters = useDebounce(tempFilters, 500);
 
-  // Actual filters for API request
   const [filters, setFilters] = useState<Filters>({
     page: 1,
-    per_page: 10,
+    per_page: 50,
     transaction_type: "",
     transaction_status: "",
     user_id: "",
@@ -74,7 +85,6 @@ export default function Transactions() {
     order: "desc",
   });
 
-  // Sync debounced filters with actual filters
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
@@ -83,18 +93,16 @@ export default function Transactions() {
       user_id: debouncedFilters.user_id,
       start_date: debouncedFilters.start_date,
       end_date: debouncedFilters.end_date,
-      page: 1, // Reset to page 1 on filter change
+      page: 1,
     }));
   }, [debouncedFilters]);
 
-  // Fetch transactions
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ["transactions", cleanFilters(filters)],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["transactions", filters],
     queryFn: () => apiService.getTransactions(cleanFilters(filters)),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // WebSocket for real-time updates
   const { notifications } = useWebSocket();
 
   useEffect(() => {
@@ -111,7 +119,6 @@ export default function Transactions() {
     }
   }, [notifications, refetch]);
 
-  // Table columns with proper typing
   const columns: ColumnDef<Transaction>[] = [
     {
       accessorKey: "TransactionID",
@@ -166,7 +173,6 @@ export default function Transactions() {
     },
   ];
 
-  // Handle CSV export
   const handleExport = async () => {
     try {
       const csv = await apiService.exportTransactions(cleanFilters(filters));
@@ -178,133 +184,170 @@ export default function Transactions() {
       a.click();
       window.URL.revokeObjectURL(url);
       toast.success("Transactions exported successfully!");
-    } catch (error) {
-      toast.error("Failed to export transactions.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to export transactions.");
+      }
     }
   };
 
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-[50vh] flex flex-col items-center justify-center space-y-6 bg-card rounded-lg shadow-lg p-6"
+      >
+        <p className="text-destructive text-xl font-medium">
+          Failed to load transactions
+        </p>
+        <Button
+          onClick={() => refetch()}
+          variant="outline"
+          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+        >
+          Retry
+        </Button>
+      </motion.div>
+    );
+  }
+
   return (
-    <section className="py-8 max-w-7xl mx-auto">
-      <header className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-          Transactions
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="py-6 bg-background rounded-lg shadow-lg p-6"
+    >
+      <header className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-foreground flex items-center">
+          <DollarSign className="h-6 w-6 text-primary mr-2" />
+          Manage Transactions
         </h1>
         <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={handleExport}
-            className="bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 border-primary text-primary"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
           >
-            <Download className="h-4 w-4 mr-2" /> Export CSV
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => refetch()}
-            className="text-muted-foreground hover:text-primary"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
           >
-            <RefreshCcw className="h-4 w-4 mr-2" /> Refresh
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Refresh
           </Button>
         </div>
       </header>
-
-      <Card className="bg-background/50 backdrop-blur-lg border-border shadow-xl mb-8">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Input
-              placeholder="Filter by type (Deposit, Transfer, Withdrawal)"
-              value={tempFilters.transaction_type}
-              onChange={(e) =>
-                setTempFilters({
-                  ...tempFilters,
-                  transaction_type: e.target.value,
-                })
-              }
-              className="bg-background/50 backdrop-blur-lg text-foreground border-input focus:ring-2 focus:ring-primary/50"
-            />
-            <Input
-              placeholder="Filter by status (Pending, Completed, Failed)"
-              value={tempFilters.transaction_status}
-              onChange={(e) =>
-                setTempFilters({
-                  ...tempFilters,
-                  transaction_status: e.target.value,
-                })
-              }
-              className="bg-background/50 backdrop-blur-lg text-foreground border-input focus:ring-2 focus:ring-primary/50"
-            />
-            <Input
-              placeholder="Filter by User ID"
-              value={tempFilters.user_id}
-              onChange={(e) =>
-                setTempFilters({ ...tempFilters, user_id: e.target.value })
-              }
-              className="bg-background/50 backdrop-blur-lg text-foreground border-input focus:ring-2 focus:ring-primary/50"
-            />
-            <Input
-              type="date"
-              placeholder="Start Date"
-              value={tempFilters.start_date}
-              onChange={(e) =>
-                setTempFilters({ ...tempFilters, start_date: e.target.value })
-              }
-              className="bg-background/50 backdrop-blur-lg text-foreground border-input focus:ring-2 focus:ring-primary/50"
-            />
-            <Input
-              type="date"
-              placeholder="End Date"
-              value={tempFilters.end_date}
-              onChange={(e) =>
-                setTempFilters({ ...tempFilters, end_date: e.target.value })
-              }
-              className="bg-background/50 backdrop-blur-lg text-foreground border-input focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-background/50 backdrop-blur-lg border-border shadow-xl">
-        <CardContent className="p-6">
-          {isLoading ? (
-            <TableSkeleton columns={7} rows={10} />
-          ) : data?.items.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              No transactions found
-            </div>
-          ) : (
-            <>
-              <DataTable
-                columns={columns}
-                data={data?.items || []}
-                rowClassName="hover:bg-muted/30 transition-all duration-300 border-b border-border/50"
-              />
-              <div className="flex justify-between mt-6">
-                <Button
-                  disabled={filters.page === 1}
-                  onClick={() =>
-                    setFilters({ ...filters, page: filters.page - 1 })
-                  }
-                  variant="outline"
-                  className="bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 border-primary text-primary"
-                >
-                  <ChevronLeft className="h-4 w-4 mr-2" />
-                  Previous
-                </Button>
-                <Button
-                  disabled={filters.page >= (data?.total_pages || 1)}
-                  onClick={() =>
-                    setFilters({ ...filters, page: filters.page + 1 })
-                  }
-                  variant="outline"
-                  className="bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 border-primary text-primary"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 bg-card p-4 rounded-lg shadow-sm">
+        <div className="flex-1">
+          <Input
+            placeholder="Filter by type (Deposit, Transfer, Withdrawal)"
+            value={tempFilters.transaction_type}
+            onChange={(e) =>
+              setTempFilters({
+                ...tempFilters,
+                transaction_type: e.target.value,
+              })
+            }
+            className="bg-input text-foreground rounded-lg shadow-sm"
+            aria-label="Filter transactions by type"
+          />
+        </div>
+        <div className="flex-1">
+          <Input
+            placeholder="Filter by status (Pending, Completed, Failed)"
+            value={tempFilters.transaction_status}
+            onChange={(e) =>
+              setTempFilters({
+                ...tempFilters,
+                transaction_status: e.target.value,
+              })
+            }
+            className="bg-input text-foreground rounded-lg shadow-sm"
+            aria-label="Filter transactions by status"
+          />
+        </div>
+        <div className="flex-1">
+          <Input
+            placeholder="Filter by User ID"
+            value={tempFilters.user_id}
+            onChange={(e) =>
+              setTempFilters({ ...tempFilters, user_id: e.target.value })
+            }
+            className="bg-input text-foreground rounded-lg shadow-sm"
+            aria-label="Filter transactions by user ID"
+          />
+        </div>
+        <div className="flex-1">
+          <Input
+            type="date"
+            placeholder="Start Date"
+            value={tempFilters.start_date}
+            onChange={(e) =>
+              setTempFilters({ ...tempFilters, start_date: e.target.value })
+            }
+            className="bg-input text-foreground rounded-lg shadow-sm"
+            aria-label="Filter transactions by start date"
+          />
+        </div>
+        <div className="flex-1">
+          <Input
+            type="date"
+            placeholder="End Date"
+            value={tempFilters.end_date}
+            onChange={(e) =>
+              setTempFilters({ ...tempFilters, end_date: e.target.value })
+            }
+            className="bg-input text-foreground rounded-lg shadow-sm"
+            aria-label="Filter transactions by end date"
+          />
+        </div>
+        <div className="flex-1">
+          <Button
+            variant="outline"
+            onClick={handleClearFilters}
+            className="bg-gradient-to-r from-destructive/10 to-destructive/20 hover:from-destructive/20 hover:to-destructive/30 border-destructive text-destructive"
+            aria-label="Clear all filters"
+          >
+            Clear Filters
+          </Button>
+        </div>
+      </div>
+      {isLoading ? (
+        <TableSkeleton columns={7} rows={10} />
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <DataTable
+            columns={columns}
+            data={data?.items || []}
+            rowClassName="bg-card rounded-lg shadow-md hover:bg-muted/30 transition-colors duration-200"
+            enablePagination={true}
+            initialPageSize={filters.per_page}
+            showPageSizeSelector={true}
+            pageSizeOptions={[25, 50, 100, 200]}
+            manualPagination={true}
+            pageCount={data?.total_pages || 1}
+            onPaginationChange={({ pageIndex, pageSize }) => {
+              setFilters({
+                ...filters,
+                page: pageIndex + 1,
+                per_page: pageSize,
+              });
+            }}
+          />
+        </motion.div>
+      )}
+    </motion.section>
   );
 }

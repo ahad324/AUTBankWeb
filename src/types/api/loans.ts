@@ -21,7 +21,7 @@ export interface Loan {
 export interface GetLoansQuery {
   page?: number;
   per_page?: number;
-  loan_status?: "Pending" | "Approved" | "Rejected" | "Repaid";
+  loan_status?: "Pending" | "Approved" | "Rejected" | "Repaid" | "all";
   user_id?: number;
   loan_type_id?: number;
   start_date?: string;

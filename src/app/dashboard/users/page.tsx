@@ -283,6 +283,10 @@ export default function Users() {
             columns={columns}
             data={filteredUsers}
             rowClassName="bg-card rounded-lg shadow-md hover:bg-muted/30 transition-colors duration-200"
+            enablePagination={true}
+            initialPageSize={20}
+            showPageSizeSelector={true}
+            pageSizeOptions={[10, 20, 50, 100]}
           />
         </motion.div>
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,10 +47,16 @@ const editUserSchema = z.object({
 
 type EditUserFormData = z.infer<typeof editUserSchema>;
 
-export default function EditUser({ params }: { params: { user_id: string } }) {
+export default function EditUser({
+  params: paramsPromise,
+}: {
+  params: Promise<{ user_id: string }>;
+}) {
+  const { user_id } = use(paramsPromise);
+  const userId = parseInt(user_id);
+
   const queryClient = useQueryClient();
   const router = useRouter();
-  const userId = parseInt(params.user_id);
 
   const {
     data: user,

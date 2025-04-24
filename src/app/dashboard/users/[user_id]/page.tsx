@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
@@ -11,12 +12,14 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import Link from "next/link";
 
 export default function UserDetails({
-  params,
+  params: paramsPromise,
 }: {
-  params: { user_id: string };
+  params: Promise<{ user_id: string }>;
 }) {
+  const { user_id } = use(paramsPromise);
+  const userId = parseInt(user_id);
+
   const queryClient = useQueryClient();
-  const userId = parseInt(params.user_id);
 
   const {
     data: user,

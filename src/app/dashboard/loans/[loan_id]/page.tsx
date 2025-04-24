@@ -1,7 +1,7 @@
 "use client";
 
+import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
 import { apiService } from "@/services/apiService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -9,8 +9,12 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { FileText } from "lucide-react";
 
-export default function LoanDetail() {
-  const { loan_id } = useParams();
+export default function LoanDetail({
+  params: paramsPromise,
+}: {
+  params: Promise<{ loan_id: string }>;
+}) {
+  const { loan_id } = use(paramsPromise);
 
   // Fetch loan details
   const {
@@ -33,7 +37,7 @@ export default function LoanDetail() {
     error: userError,
   } = useQuery({
     queryKey: ["user", loan?.UserID],
-    queryFn: () => apiService.getUser(loan.UserID),
+    queryFn: () => apiService.getUser(loan!.UserID),
     enabled: !!loan?.UserID,
   });
 

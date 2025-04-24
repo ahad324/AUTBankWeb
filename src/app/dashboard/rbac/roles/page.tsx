@@ -45,7 +45,7 @@ export default function Roles() {
     register,
     handleSubmit,
     reset,
-    setValue,
+
     formState: { errors, isSubmitting },
   } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),

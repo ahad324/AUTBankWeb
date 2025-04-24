@@ -9,12 +9,7 @@ import { Input } from "@/components/ui/input";
 import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
 import TableSkeleton from "@/components/common/TableSkeleton";
-import {
-  Permission,
-  Role,
-  AssignPermissionRequest,
-  RevokePermissionRequest,
-} from "@/types/api";
+import { Permission, Role } from "@/types/api";
 import { useDebounce } from "@/hooks/useDebounce";
 import { motion } from "framer-motion";
 import {
@@ -84,7 +79,7 @@ export default function AssignPermissions() {
         queryKey: ["rolePermissions", selectedRole],
       });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       const errorMessage = err.message.includes("already assigned")
         ? "Permission is already assigned to this role"
         : err.message || "Failed to assign permission";
@@ -104,7 +99,7 @@ export default function AssignPermissions() {
         queryKey: ["rolePermissions", selectedRole],
       });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       const errorMessage = err.message.includes("not found")
         ? "Role or permission not found"
         : err.message.includes("not assigned")

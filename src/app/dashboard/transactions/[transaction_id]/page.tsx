@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
 import { Transaction } from "@/types/api";
@@ -11,14 +12,16 @@ import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 
 export default function TransactionDetail({
-  params,
+  params: paramsPromise,
 }: {
-  params: { transaction_id: string };
+  params: Promise<{ transaction_id: string }>;
 }) {
+  const params = use(paramsPromise);
+  const transactionId = params.transaction_id;
   const router = useRouter();
   const { data, isLoading } = useQuery<Transaction>({
-    queryKey: ["transaction", params.transaction_id],
-    queryFn: () => apiService.getTransactionById(Number(params.transaction_id)),
+    queryKey: ["transaction", transactionId],
+    queryFn: () => apiService.getTransactionById(Number(transactionId)),
   });
 
   if (isLoading)

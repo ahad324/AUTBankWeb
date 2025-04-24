@@ -254,7 +254,7 @@ export const apiService = {
   getTransactionById: async (transaction_id: number): Promise<Transaction> =>
     handleResponse(
       await api.get<GetTransactionByIdResponse>(
-        `/admins/transactions/${transaction_id}`
+        `/admins/transactions/details/${transaction_id}`
       )
     ),
 

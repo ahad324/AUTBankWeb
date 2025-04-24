@@ -16,35 +16,61 @@ import {
   DollarSign,
   Search,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+
+interface Filters {
+  userId?: number;
+  page: number;
+  per_page: number;
+  [key: string]: number | undefined;
+}
+
+const cleanFilters = (filters: Filters) => {
+  const { userId, page, per_page } = filters;
+  return {
+    userId,
+    params: {
+      page,
+      per_page,
+    },
+  };
+};
+
 
 export default function ViewDeposits() {
   const [tempUserId, setTempUserId] = useState("");
   const debouncedUserId = useDebounce(tempUserId, 500);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [page, setPage] = useState(1);
-  const perPage = 10;
+  const [filters, setFilters] = useState<Filters>({
+    userId: undefined,
+    page: 1,
+    per_page: 10,
+  });
 
   useEffect(() => {
     const id = parseInt(debouncedUserId);
     if (!isNaN(id) && id > 0) {
-      setUserId(id);
-      setPage(1);
+      setFilters((prev) => ({
+        ...prev,
+        userId: id,
+        page: 1,
+      }));
     } else {
-      setUserId(null);
+      setFilters((prev) => ({
+        ...prev,
+        userId: undefined,
+        page: 1,
+      }));
     }
   }, [debouncedUserId]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["deposits", userId, page],
-    queryFn: () =>
-      apiService
-        .getDeposits(userId!, { page, per_page: perPage })
-        .then((res) => res),
-    enabled: !!userId,
+    queryKey: ["deposits", filters.userId, filters.page, filters.per_page],
+    queryFn: () => {
+      const { userId, params } = cleanFilters(filters);
+      return apiService.getDeposits(userId!, params);
+    },
+    enabled: !!filters.userId,
   });
 
   const columns: ColumnDef<Deposit>[] = [
@@ -143,7 +169,7 @@ export default function ViewDeposits() {
         </Card>
       </motion.div>
 
-      {userId ? (
+      {filters.userId ? (
         isLoading ? (
           <TableSkeleton columns={5} rows={5} />
         ) : (
@@ -157,32 +183,23 @@ export default function ViewDeposits() {
                 <DataTable
                   columns={columns}
                   data={data?.items || []}
-                  rowClassName="hover:bg-muted/30 transition-all duration-300 border-b border-border/50"
+                  rowClassName="bg-card rounded-lg shadow-md hover:bg-muted/30 transition-colors duration-200"
+                  enablePagination={true}
+                  initialPageSize={filters.per_page}
+                  showPageSizeSelector={true}
+                  pageSizeOptions={[5, 10, 20, 50]}
+                  manualPagination={true}
+                  pageCount={data?.total_pages || 1}
+                  onPaginationChange={({ pageIndex, pageSize }) => {
+                    setFilters({
+                      ...filters,
+                      page: pageIndex + 1,
+                      per_page: pageSize,
+                    });
+                  }}
                 />
               </CardContent>
             </Card>
-            <div className="flex justify-between mt-6">
-              <Button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                variant="outline"
-                className="bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 border-primary text-primary transition-all duration-300"
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-              <Button
-                disabled={page >= (data?.total_pages || 1)}
-                onClick={() => setPage((p) => p + 1)}
-                variant="outline"
-                className="bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 border-primary text-primary transition-all duration-300"
-                aria-label="Next page"
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
           </motion.div>
         )
       ) : (

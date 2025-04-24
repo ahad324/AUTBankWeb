@@ -51,7 +51,7 @@ export default function Permissions() {
     register,
     handleSubmit,
     reset,
-    setValue,
+
     formState: { errors, isSubmitting },
   } = useForm<PermissionFormData>({
     resolver: zodResolver(permissionSchema),

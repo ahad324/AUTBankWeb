@@ -38,12 +38,11 @@ export default function ProcessDepositPage() {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm<DepositFormData>({
     resolver: zodResolver(depositSchema),
   });
 
-  const { data: users } = useQuery({
+  useQuery({
     queryKey: ["users"],
     queryFn: () =>
       apiService.getUsers({ per_page: 100 }).then((res) => res.items),

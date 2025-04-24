@@ -29,10 +29,31 @@ import { formatCurrency } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { FileText, CheckCircle, XCircle } from "lucide-react";
 
+interface Filters extends Partial<GetLoansQuery> {
+  [key: string]: string | number | undefined;
+}
+
+const cleanFilters = (filters: Filters) => {
+  const cleaned: { [key: string]: string | number } = {
+    page: filters.page || 1,
+    per_page: filters.per_page || 10,
+  };
+
+  // Only include non-empty filters
+  if (filters.loan_status && filters.loan_status !== "all") {
+    cleaned.loan_status = filters.loan_status;
+  }
+  if (filters.user_id) {
+    cleaned.user_id = filters.user_id;
+  }
+
+  return cleaned;
+};
+
 export default function Loans() {
   const queryClient = useQueryClient();
   const { permissions } = useAuthStore();
-  const [filters, setFilters] = useState<Partial<GetLoansQuery>>({
+  const [filters, setFilters] = useState<Filters>({
     page: 1,
     per_page: 10,
     loan_status: undefined,
@@ -46,7 +67,7 @@ export default function Loans() {
   // Fetch loans
   const { data, isLoading, error } = useQuery({
     queryKey: ["loans", filters],
-    queryFn: () => apiService.getLoans(filters),
+    queryFn: () => apiService.getLoans(cleanFilters(filters)),
     retry: 3,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
   });
@@ -59,7 +80,8 @@ export default function Loans() {
       toast.success("Loan approved successfully");
       setConfirmAction(null);
     },
-    onError: (err: any) => toast.error(err.message || "Failed to approve loan"),
+    onError: (err: Error) =>
+      toast.error(err.message || "Failed to approve loan"),
   });
 
   const rejectMutation = useMutation({
@@ -69,7 +91,8 @@ export default function Loans() {
       toast.success("Loan rejected successfully");
       setConfirmAction(null);
     },
-    onError: (err: any) => toast.error(err.message || "Failed to reject loan"),
+    onError: (err: Error) =>
+      toast.error(err.message || "Failed to reject loan"),
   });
 
   // Action handlers
@@ -79,9 +102,11 @@ export default function Loans() {
 
   const confirmActionHandler = () => {
     if (!confirmAction) return;
-    confirmAction.action === "approve"
-      ? approveMutation.mutate(confirmAction.loanId)
-      : rejectMutation.mutate(confirmAction.loanId);
+    if (confirmAction.action === "approve") {
+      approveMutation.mutate(confirmAction.loanId);
+    } else {
+      rejectMutation.mutate(confirmAction.loanId);
+    }
   };
 
   // Permission checks
@@ -206,9 +231,12 @@ export default function Loans() {
           className="bg-input text-foreground rounded-lg shadow-sm"
         />
         <Select
-          value={filters.loan_status}
+          value={filters.loan_status || "all"}
           onValueChange={(value) =>
-            setFilters({ ...filters, loan_status: value as any })
+            setFilters({
+              ...filters,
+              loan_status: value === "all" ? undefined : value as Loan["LoanStatus"],
+            })
           }
         >
           <SelectTrigger className="bg-background text-foreground rounded-lg shadow-sm">
@@ -228,17 +256,30 @@ export default function Loans() {
       {isLoading ? (
         <TableSkeleton columns={6} rows={5} />
       ) : (
-        <DataTable
-          columns={columns}
-          data={data?.items || []}
-          pagination={{
-            page: filters.page,
-            perPage: filters.per_page,
-            total: data?.total || 0,
-            onPageChange: (page) => setFilters({ ...filters, page }),
-          }}
-          rowClassName="bg-card rounded-lg shadow-md hover:bg-muted/30 transition-colors duration-200"
-        />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <DataTable
+            columns={columns}
+            data={data?.items || []}
+            rowClassName="bg-card rounded-lg shadow-md hover:bg-muted/30 transition-colors duration-200"
+            enablePagination={true}
+            initialPageSize={filters.per_page}
+            showPageSizeSelector={true}
+            pageSizeOptions={[5, 10, 20, 50]}
+            manualPagination={true}
+            pageCount={data?.total_pages || 1}
+            onPaginationChange={({ pageIndex, pageSize }) => {
+              setFilters({
+                ...filters,
+                page: pageIndex + 1,
+                per_page: pageSize,
+              });
+            }}
+          />
+        </motion.div>
       )}
 
       {/* Confirmation Dialog */}
