@@ -50,8 +50,8 @@ export default function Roles() {
   } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
     defaultValues: editRole
-      ? { RoleName: editRole.RoleName, Description: editRole.Description }
-      : {},
+  ? { RoleName: editRole.RoleName, Description: editRole.Description ?? undefined }
+  : {},
   });
 
   const { data, isLoading, error } = useQuery({
@@ -127,7 +127,7 @@ export default function Roles() {
               setEditRole(row.original);
               reset({
                 RoleName: row.original.RoleName,
-                Description: row.original.Description,
+                Description: row.original.Description ??  undefined,
               });
             }}
             className="hover:bg-primary/10 border-primary text-primary"

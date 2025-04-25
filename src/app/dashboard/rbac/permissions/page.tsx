@@ -58,7 +58,7 @@ export default function Permissions() {
     defaultValues: editPermission
       ? {
           PermissionName: editPermission.PermissionName,
-          Description: editPermission.Description,
+          Description: editPermission.Description ?? undefined,
         }
       : {},
   });
@@ -138,7 +138,7 @@ export default function Permissions() {
               setEditPermission(row.original);
               reset({
                 PermissionName: row.original.PermissionName,
-                Description: row.original.Description,
+                Description: row.original.Description ?? undefined,
               });
             }}
             className="hover:bg-primary/10 border-primary text-primary"
