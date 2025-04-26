@@ -34,7 +34,11 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import Link from "next/link";
 
 const updateAdminSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters").max(50).optional(),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(50)
+    .optional(),
   email: z.string().email("Invalid email address").optional(),
   roleId: z.number().int().positive("Please select a role").optional(),
 });
@@ -63,11 +67,13 @@ export default function Admins() {
     formState: { errors, isSubmitting },
   } = useForm<UpdateAdminFormData>({
     resolver: zodResolver(updateAdminSchema),
-    defaultValues: editAdmin ? {
-      username: editAdmin.Username,
-      email: editAdmin.Email,
-      roleId: editAdmin.RoleID,
-    } : {},
+    defaultValues: editAdmin
+      ? {
+          username: editAdmin.Username,
+          email: editAdmin.Email,
+          roleId: editAdmin.RoleID,
+        }
+      : {},
   });
 
   const { data: roles, isLoading: rolesLoading } = useQuery({
@@ -105,11 +111,12 @@ export default function Admins() {
       reset();
     },
     onError: (err: Error) => {
-      const message = err.cause === 403
-        ? "Only SuperAdmin can update other admins"
-        : err.cause === 400
-        ? "Invalid data provided"
-        : err.message || "Failed to update admin";
+      const message =
+        err.cause === 403
+          ? "Only SuperAdmin can update other admins"
+          : err.cause === 400
+          ? "Invalid data provided"
+          : err.message || "Failed to update admin";
       toast.error(message);
     },
   });
@@ -136,7 +143,9 @@ export default function Admins() {
         if (!roles || roles.length === 0) {
           return <LoadingSpinner text={""} size="sm" className="w-8" />;
         }
-        const role = roles.find((r: Role) => r.RoleID === Number(row.original.RoleID));
+        const role = roles.find(
+          (r: Role) => r.RoleID === Number(row.original.RoleID)
+        );
         return role ? role.RoleName : "Unknown Role";
       },
     },
@@ -191,7 +200,9 @@ export default function Admins() {
           {error ? "Failed to load admins or roles" : <LoadingSpinner />}
         </p>
         <Button
-          onClick={() => queryClient.invalidateQueries({ queryKey: ["admins", "roles"] })}
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["admins", "roles"] })
+          }
           variant="outline"
           className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
         >
@@ -225,7 +236,9 @@ export default function Admins() {
           <Input
             placeholder="Search by username..."
             value={filters.username || ""}
-            onChange={(e) => setFilters({ ...filters, username: e.target.value })}
+            onChange={(e) =>
+              setFilters({ ...filters, username: e.target.value })
+            }
             className="bg-input text-foreground rounded-lg shadow-sm"
             aria-label="Search admins by username"
           />
@@ -283,7 +296,7 @@ export default function Admins() {
             onPaginationChange={({ pageIndex, pageSize }) => {
               setFilters({
                 ...filters,
-                page: pageIndex + 1, // Backend uses 1-based indexing
+                page: pageIndex + 1,
                 per_page: pageSize,
               });
             }}
@@ -319,7 +332,9 @@ export default function Admins() {
                     aria-invalid={!!errors.username}
                   />
                   {errors.username && (
-                    <p className="text-destructive text-sm">{errors.username.message}</p>
+                    <p className="text-destructive text-sm">
+                      {errors.username.message}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -333,7 +348,9 @@ export default function Admins() {
                     aria-invalid={!!errors.email}
                   />
                   {errors.email && (
-                    <p className="text-destructive text-sm">{errors.email.message}</p>
+                    <p className="text-destructive text-sm">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -350,14 +367,19 @@ export default function Admins() {
                     </SelectTrigger>
                     <SelectContent className="bg-background text-foreground border-border">
                       {roles?.map((role: Role) => (
-                        <SelectItem key={role.RoleID} value={String(role.RoleID)}>
+                        <SelectItem
+                          key={role.RoleID}
+                          value={String(role.RoleID)}
+                        >
                           {role.RoleName}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.roleId && (
-                    <p className="text-destructive text-sm">{errors.roleId.message}</p>
+                    <p className="text-destructive text-sm">
+                      {errors.roleId.message}
+                    </p>
                   )}
                 </div>
                 <Button
@@ -365,14 +387,19 @@ export default function Admins() {
                   disabled={isSubmitting || updateMutation.isPending}
                   className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all duration-300"
                 >
-                  {isSubmitting || updateMutation.isPending ? "Updating..." : "Update Admin"}
+                  {isSubmitting || updateMutation.isPending
+                    ? "Updating..."
+                    : "Update Admin"}
                 </Button>
               </motion.form>
             </DialogContent>
           </Dialog>
         )}
         {deleteAdmin && (
-          <Dialog open={!!deleteAdmin} onOpenChange={() => setDeleteAdmin(null)}>
+          <Dialog
+            open={!!deleteAdmin}
+            onOpenChange={() => setDeleteAdmin(null)}
+          >
             <DialogContent className="bg-background rounded-lg shadow-xl max-w-md">
               <DialogHeader>
                 <DialogTitle className="flex items-center">
@@ -381,12 +408,16 @@ export default function Admins() {
                 </DialogTitle>
               </DialogHeader>
               <p className="text-muted-foreground">
-                Are you sure you want to delete the following admin? This action cannot be undone.
+                Are you sure you want to delete the following admin? This action
+                cannot be undone.
               </p>
               <ul className="list-disc pl-5 my-4">
                 <li className="text-foreground">
                   {deleteAdmin.Username} (ID: {deleteAdmin.AdminID}, Role:{" "}
-                  {roles?.find((r: { RoleID: number }) => r.RoleID === deleteAdmin.RoleID)?.RoleName || "Unknown"})
+                  {roles?.find(
+                    (r: { RoleID: number }) => r.RoleID === deleteAdmin.RoleID
+                  )?.RoleName || "Unknown"}
+                  )
                 </li>
               </ul>
               <DialogFooter>

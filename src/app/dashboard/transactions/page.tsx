@@ -8,11 +8,7 @@ import { DataTable } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  Download,
-  RefreshCcw,
-  DollarSign,
-} from "lucide-react";
+import { Download, RefreshCcw, DollarSign } from "lucide-react";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -43,8 +39,10 @@ const cleanFilters = (filters: Filters) => {
   };
 
   // Only include non-empty filters
-  if (filters.transaction_type) cleaned.transaction_type = filters.transaction_type;
-  if (filters.transaction_status) cleaned.transaction_status = filters.transaction_status;
+  if (filters.transaction_type)
+    cleaned.transaction_type = filters.transaction_type;
+  if (filters.transaction_status)
+    cleaned.transaction_status = filters.transaction_status;
   if (filters.user_id) cleaned.user_id = filters.user_id;
   if (filters.start_date) cleaned.start_date = filters.start_date;
   if (filters.end_date) cleaned.end_date = filters.end_date;

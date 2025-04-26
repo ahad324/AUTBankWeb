@@ -6,6 +6,7 @@ import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/common/BackButton";
 import { User as UserIcon, Edit, ToggleLeft, ToggleRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -81,6 +82,7 @@ export default function UserDetails({
         <UserIcon className="h-6 w-6 text-primary mr-2" />
         User Details
       </h1>
+      <BackButton />
       <Card className="bg-gradient-to-br from-card to-muted/30 shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <div className="flex justify-between items-center">

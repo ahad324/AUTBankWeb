@@ -3,10 +3,17 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   ColumnDef,
-  flexRender
+  flexRender,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { TablePagination } from "@/components/ui/TablePagination";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +27,10 @@ interface DataTableProps<TData, TValue> {
   pageSizeOptions?: number[];
   manualPagination?: boolean;
   pageCount?: number;
-  onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
+  onPaginationChange?: (pagination: {
+    pageIndex: number;
+    pageSize: number;
+  }) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -70,7 +80,10 @@ export function DataTable<TData, TValue>({
                 <TableHead key={header.id}>
                   {header.isPlaceholder
                     ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                 </TableHead>
               ))}
             </TableRow>

@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { FileText } from "lucide-react";
+import { BackButton } from "@/components/common/BackButton";
 
 export default function LoanDetail({
   params: paramsPromise,
@@ -74,6 +75,7 @@ export default function LoanDetail({
         <FileText className="h-6 w-6 text-primary mr-2" />
         Loan Details - ID: {loan.LoanID}
       </h1>
+      <BackButton />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-gradient-to-br from-card to-muted/30 shadow-lg">
           <CardHeader>

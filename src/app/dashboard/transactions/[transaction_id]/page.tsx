@@ -5,11 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
 import { Transaction } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
+import { BackButton } from "@/components/common/BackButton";
 
 export default function TransactionDetail({
   params: paramsPromise,
@@ -18,7 +16,6 @@ export default function TransactionDetail({
 }) {
   const params = use(paramsPromise);
   const transactionId = params.transaction_id;
-  const router = useRouter();
   const { data, isLoading } = useQuery<Transaction>({
     queryKey: ["transaction", transactionId],
     queryFn: () => apiService.getTransactionById(Number(transactionId)),
@@ -36,9 +33,7 @@ export default function TransactionDetail({
 
   return (
     <section className="py-6">
-      <Button variant="ghost" onClick={() => router.back()}>
-        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Transactions
-      </Button>
+      <BackButton />
       <Card className="mt-4 bg-gradient-to-br from-card to-muted/30 shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
