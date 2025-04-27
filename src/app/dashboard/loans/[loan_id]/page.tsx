@@ -1,65 +1,82 @@
 "use client";
 
-import { use } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { apiService } from "@/services/apiService";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { FileText, CheckCircle, XCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
-import { FileText } from "lucide-react";
 import { BackButton } from "@/components/common/BackButton";
 
-export default function LoanDetail({
-  params: paramsPromise,
-}: {
-  params: Promise<{ loan_id: string }>;
-}) {
-  const { loan_id } = use(paramsPromise);
-
+export default function LoanDetails() {
+  const { loan_id } = useParams();
+  const queryClient = useQueryClient();
+  
   // Fetch loan details
   const {
     data: loan,
-    isLoading: loanLoading,
-    error: loanError,
+    isLoading,
+    error,
   } = useQuery({
     queryKey: ["loan", loan_id],
-    queryFn: () =>
-      apiService
-        .getLoans({ loan_id: Number(loan_id) })
-        .then((res) => res.items[0]),
+    queryFn: () => apiService.getLoan(Number(loan_id)),
     enabled: !!loan_id,
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch user details
-  const {
-    data: user,
-    isLoading: userLoading,
-    error: userError,
-  } = useQuery({
-    queryKey: ["user", loan?.UserID],
-    queryFn: () => apiService.getUser(loan!.UserID),
-    enabled: !!loan?.UserID,
+  // Approve loan mutation
+  const approveMutation = useMutation({
+    mutationFn: () => apiService.approveLoan(Number(loan_id)),
+    onSuccess: () => {
+      toast.success("Loan approved successfully!");
+      queryClient.invalidateQueries({ queryKey: ["loan", loan_id] });
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to approve loan");
+    },
   });
 
-  if (loanLoading || userLoading) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+  // Reject loan mutation
+  const rejectMutation = useMutation({
+    mutationFn: () => apiService.rejectLoan(Number(loan_id)),
+    onSuccess: () => {
+      toast.success("Loan rejected successfully!");
+      queryClient.invalidateQueries({ queryKey: ["loan", loan_id] });
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to reject loan");
+    },
+  });
+
+  if (isLoading) {
+    return <LoadingSpinner text="Loading loan details..." />;
   }
 
-  if (loanError || userError || !loan) {
+  if (error || !loan) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-[50vh] flex flex-col items-center justify-center space-y-6 bg-card rounded-lg shadow-lg p-6"
+        className="min-h-[50vh] flex flex-col items-center justify-center space-y-6"
       >
         <p className="text-destructive text-xl font-medium">
-          {loanError?.message || userError?.message || "Loan not found"}
+          Failed to load loan details
         </p>
+        <Button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["loan", loan_id] })}
+          variant="outline"
+          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+        >
+          Retry
+        </Button>
       </motion.div>
     );
   }
@@ -69,93 +86,121 @@ export default function LoanDetail({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="py-6"
+      className="py-6 bg-background rounded-lg shadow-lg p-6"
     >
-      <h1 className="text-3xl font-bold text-foreground mb-6 flex items-center">
-        <FileText className="h-6 w-6 text-primary mr-2" />
-        Loan Details - ID: {loan.LoanID}
-      </h1>
-      <BackButton />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-gradient-to-br from-card to-muted/30 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl text-foreground">
-              Loan Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <span className="font-semibold text-muted-foreground">Type:</span>
-              <span>{loan.LoanTypeName}</span>
-              <span className="font-semibold text-muted-foreground">
-                Amount:
-              </span>
-              <span>{formatCurrency(loan.LoanAmount)}</span>
-              <span className="font-semibold text-muted-foreground">
-                Status:
-              </span>
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+      <header className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-foreground flex items-center">
+          <FileText className="h-6 w-6 text-primary mr-2" />
+          Loan Details - ID: {loan.LoanID}
+        </h1>
+        <BackButton />
+      </header>
+
+      <Card className="bg-gradient-to-br from-card to-muted/30 border-border shadow-md hover:shadow-lg transition-shadow duration-300">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold text-foreground">
+            Loan Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-muted-foreground">Loan Type</p>
+              <p className="text-foreground font-semibold">{loan.LoanTypeName}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Loan Amount</p>
+              <p className="text-foreground font-semibold">
+                {formatCurrency(loan.LoanAmount)}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Status</p>
+              <p
+                className={`font-semibold ${
                   loan.LoanStatus === "Approved"
-                    ? "bg-green-100 text-green-800"
-                    : loan.LoanStatus === "Rejected"
-                    ? "bg-red-100 text-red-800"
+                    ? "text-green-600"
                     : loan.LoanStatus === "Pending"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-gray-100 text-gray-800"
+                    ? "text-yellow-600"
+                    : loan.LoanStatus === "Rejected"
+                    ? "text-red-600"
+                    : "text-gray-600"
                 }`}
               >
                 {loan.LoanStatus}
-              </span>
-              <span className="font-semibold text-muted-foreground">
-                Interest Rate:
-              </span>
-              <span>{loan.InterestRate}%</span>
-              <span className="font-semibold text-muted-foreground">
-                Duration:
-              </span>
-              <span>{loan.LoanDurationMonths} months</span>
-              <span className="font-semibold text-muted-foreground">
-                Monthly Installment:
-              </span>
-              <span>{formatCurrency(loan.MonthlyInstallment)}</span>
-              <span className="font-semibold text-muted-foreground">
-                Due Date:
-              </span>
-              <span>{format(new Date(loan.DueDate), "PPP")}</span>
-              <span className="font-semibold text-muted-foreground">
-                Created At:
-              </span>
-              <span>{format(new Date(loan.CreatedAt), "PPP")}</span>
+              </p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-card to-muted/30 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl text-foreground">
-              User Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <span className="font-semibold text-muted-foreground">
-                Username:
-              </span>
-              <span>{user?.Username}</span>
-              <span className="font-semibold text-muted-foreground">
-                Email:
-              </span>
-              <span>{user?.Email}</span>
-              <span className="font-semibold text-muted-foreground">
-                Full Name:
-              </span>
-              <span>
-                {user?.FirstName} {user?.LastName}
-              </span>
+            <div>
+              <p className="text-muted-foreground">Interest Rate</p>
+              <p className="text-foreground font-semibold">{loan.InterestRate}%</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div>
+              <p className="text-muted-foreground">Loan Duration</p>
+              <p className="text-foreground font-semibold">
+                {loan.LoanDurationMonths} months
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Monthly Installment</p>
+              <p className="text-foreground font-semibold">
+                {formatCurrency(loan.MonthlyInstallment)}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Due Date</p>
+              <p className="text-foreground font-semibold">
+                {format(new Date(loan.DueDate), "PPP")}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Created At</p>
+              <p className="text-foreground font-semibold">
+                {format(new Date(loan.CreatedAt), "PPP")}
+              </p>
+            </div>
+            {loan.ApprovedAt && (
+              <div>
+                <p className="text-muted-foreground">Approved At</p>
+                <p className="text-foreground font-semibold">
+                  {format(new Date(loan.ApprovedAt), "PPP")}
+                </p>
+              </div>
+            )}
+            {loan.RejectedAt && (
+              <div>
+                <p className="text-muted-foreground">Rejected At</p>
+                <p className="text-foreground font-semibold">
+                  {format(new Date(loan.RejectedAt), "PPP")}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {loan.LoanStatus === "Pending" && (
+            <div className="flex gap-4 mt-6">
+              
+                <Button
+                  onClick={() => approveMutation.mutate()}
+                  disabled={approveMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  {approveMutation.isPending ? "Approving..." : "Approve Loan"}
+                </Button>
+              
+                <Button
+                  onClick={() => rejectMutation.mutate()}
+                  disabled={rejectMutation.isPending}
+                  variant="destructive"
+                  className="flex items-center gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  {rejectMutation.isPending ? "Rejecting..." : "Reject Loan"}
+                </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </motion.section>
   );
 }

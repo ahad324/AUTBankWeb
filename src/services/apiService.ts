@@ -58,6 +58,7 @@ import {
   ApiResponse,
   UpdateOtherAdminRequest,
   UpdateOtherAdminResponse,
+  Loan,
 } from "@/types/api";
 import { AxiosResponse } from "axios";
 
@@ -196,6 +197,11 @@ export const apiService = {
   getLoans: async (params?: ApiParams): Promise<GetLoansResponse["data"]> =>
     handleResponse(
       await api.get<GetLoansResponse>("/admins/loans", { params })
+    ),
+
+  getLoan: async (loan_id: number): Promise<Loan> =>
+    handleResponse(
+      await api.get<ApiResponse<Loan>>(`/admins/loans/${loan_id}`)
     ),
 
   approveLoan: async (loan_id: number): Promise<ApproveLoanResponse["data"]> =>

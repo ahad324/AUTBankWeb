@@ -237,12 +237,16 @@ const LoanStatsCard = memo(
                 <Tooltip
                   formatter={(value: number) => [value, "Count"]}
                   contentStyle={{
-                    backgroundColor: "var(--background)",
+                    backgroundColor: "var(--card)",
                     borderColor: "var(--border)",
                     color: "var(--foreground)",
                     borderRadius: "8px",
-                    boxShadow: "0 4px 6px var(--shadow)/0.1)",
+                    padding: "8px",
+                    fontSize: "12px",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
                   }}
+                  labelStyle={{ color: "var(--foreground)" }}
+                  itemStyle={{ color: "var(--foreground)" }}
                 />
                 <Legend
                   formatter={(value) => (

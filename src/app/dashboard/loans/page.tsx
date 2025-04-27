@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { apiService } from "@/services/apiService";
-import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { Loan, GetLoansQuery } from "@/types/api";
 import { DataTable } from "@/components/ui/DataTable";
@@ -27,7 +26,8 @@ import {
 import TableSkeleton from "@/components/common/TableSkeleton";
 import { formatCurrency } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { FileText, CheckCircle, XCircle } from "lucide-react";
+import { FileText, CheckCircle, XCircle, Eye } from "lucide-react";
+import Link from "next/link";
 
 interface Filters extends Partial<GetLoansQuery> {
   [key: string]: string | number | undefined;
@@ -52,7 +52,6 @@ const cleanFilters = (filters: Filters) => {
 
 export default function Loans() {
   const queryClient = useQueryClient();
-  const { permissions } = useAuthStore();
   const [filters, setFilters] = useState<Filters>({
     page: 1,
     per_page: 10,
@@ -109,16 +108,9 @@ export default function Loans() {
     }
   };
 
-  // Permission checks
-  const canApprove = permissions.some(
-    (p) => p.PermissionName === "loan:approve"
-  );
-  const canReject = permissions.some((p) => p.PermissionName === "loan:reject");
-
   // Table columns
   const columns: ColumnDef<Loan>[] = [
     { accessorKey: "LoanID", header: "ID" },
-    { accessorKey: "UserID", header: "User ID" },
     { accessorKey: "LoanTypeName", header: "Type" },
     {
       accessorKey: "LoanAmount",
@@ -149,33 +141,45 @@ export default function Loans() {
       header: "Actions",
       cell: ({ row }) => {
         const loan = row.original;
-        if (loan.LoanStatus !== "Pending") return null;
         return (
           <div className="flex gap-2">
-            {canApprove && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleAction(loan.LoanID, "approve")}
-                disabled={approveMutation.isPending}
-                className="text-green-600 border-green-600 hover:bg-green-50"
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Approve
-              </Button>
+            {loan.LoanStatus === "Pending" && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAction(loan.LoanID, "approve")}
+                  disabled={approveMutation.isPending}
+                  className="text-green-600 border-green-600 hover:bg-green-50"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Approve
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAction(loan.LoanID, "reject")}
+                  disabled={rejectMutation.isPending}
+                  className="text-red-600 border-red-600 hover:bg-red-50"
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Reject
+                </Button>
+              </>
             )}
-            {canReject && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleAction(loan.LoanID, "reject")}
-                disabled={rejectMutation.isPending}
-                className="text-red-600 border-red-600 hover:bg-red-50"
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="text-primary border-primary hover:bg-primary/10"
+            >
+              <Link
+                href={`/dashboard/loans/${loan.LoanID}`}
+                aria-label={`View details for loan ${loan.LoanID}`}
               >
-                <XCircle className="h-4 w-4 mr-1" />
-                Reject
-              </Button>
-            )}
+                <Eye className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         );
       },
@@ -235,7 +239,8 @@ export default function Loans() {
           onValueChange={(value) =>
             setFilters({
               ...filters,
-              loan_status: value === "all" ? undefined : value as Loan["LoanStatus"],
+              loan_status:
+                value === "all" ? undefined : (value as Loan["LoanStatus"]),
             })
           }
         >
