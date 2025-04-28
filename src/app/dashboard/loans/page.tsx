@@ -111,6 +111,7 @@ export default function Loans() {
   // Table columns
   const columns: ColumnDef<Loan>[] = [
     { accessorKey: "LoanID", header: "ID" },
+    { accessorKey: "UserID", header: "UserID" },
     { accessorKey: "LoanTypeName", header: "Type" },
     {
       accessorKey: "LoanAmount",

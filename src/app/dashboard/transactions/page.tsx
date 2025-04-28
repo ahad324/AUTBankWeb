@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
 import { Transaction } from "@/types/api";
@@ -16,13 +16,20 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ColumnDef } from "@tanstack/react-table";
 import { motion } from "framer-motion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Filters {
   page: number;
   per_page: number;
   transaction_type: string;
   transaction_status: string;
-  user_id: string;
+  username: string;
   start_date: string;
   end_date: string;
   sort_by: string;
@@ -38,15 +45,11 @@ const cleanFilters = (filters: Filters) => {
     order: filters.order,
   };
 
-  // Only include non-empty filters
-  if (filters.transaction_type)
-    cleaned.transaction_type = filters.transaction_type;
-  if (filters.transaction_status)
-    cleaned.transaction_status = filters.transaction_status;
-  if (filters.user_id) cleaned.user_id = filters.user_id;
+  // Only include non-empty backend filters
   if (filters.start_date) cleaned.start_date = filters.start_date;
   if (filters.end_date) cleaned.end_date = filters.end_date;
 
+  console.log("Cleaned filters:", cleaned); // Debug log
   return cleaned;
 };
 
@@ -54,7 +57,7 @@ export default function Transactions() {
   const [tempFilters, setTempFilters] = useState({
     transaction_type: "",
     transaction_status: "",
-    user_id: "",
+    username: "",
     start_date: "",
     end_date: "",
   });
@@ -63,7 +66,7 @@ export default function Transactions() {
     setTempFilters({
       transaction_type: "",
       transaction_status: "",
-      user_id: "",
+      username: "",
       start_date: "",
       end_date: "",
     });
@@ -76,7 +79,7 @@ export default function Transactions() {
     per_page: 50,
     transaction_type: "",
     transaction_status: "",
-    user_id: "",
+    username: "",
     start_date: "",
     end_date: "",
     sort_by: "CreatedAt",
@@ -88,7 +91,7 @@ export default function Transactions() {
       ...prev,
       transaction_type: debouncedFilters.transaction_type,
       transaction_status: debouncedFilters.transaction_status,
-      user_id: debouncedFilters.user_id,
+      username: debouncedFilters.username,
       start_date: debouncedFilters.start_date,
       end_date: debouncedFilters.end_date,
       page: 1,
@@ -96,10 +99,49 @@ export default function Transactions() {
   }, [debouncedFilters]);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["transactions", filters],
+    queryKey: ["transactions", cleanFilters(filters)],
     queryFn: () => apiService.getTransactions(cleanFilters(filters)),
     staleTime: 5 * 60 * 1000,
   });
+
+  // Frontend filtering
+  const filteredTransactions = useMemo(() => {
+    let result = data?.items || [];
+
+    // Filter by transaction_type
+    if (filters.transaction_type) {
+      result = result.filter(
+        (t) => t.TransactionType === filters.transaction_type
+      );
+    }
+
+    // Filter by transaction_status
+    if (filters.transaction_status) {
+      result = result.filter((t) => t.Status === filters.transaction_status);
+    }
+
+    // Filter by username
+    if (filters.username) {
+      const search = filters.username.toLowerCase();
+      result = result.filter(
+        (t) =>
+          (t.Username && t.Username.toLowerCase().includes(search)) ||
+          (t.ReceiverUsername && t.ReceiverUsername.toLowerCase().includes(search))
+      );
+    }
+
+    console.log("Filtered transactions:", result); // Debug log
+    return result;
+  }, [data?.items, filters.transaction_type, filters.transaction_status, filters.username]);
+
+  // Client-side pagination
+  const paginatedTransactions = useMemo(() => {
+    const start = (filters.page - 1) * filters.per_page;
+    const end = start + filters.per_page;
+    return filteredTransactions.slice(start, end);
+  }, [filteredTransactions, filters.page, filters.per_page]);
+
+  const pageCount = Math.ceil(filteredTransactions.length / filters.per_page) || 1;
 
   const { notifications } = useWebSocket();
 
@@ -245,42 +287,56 @@ export default function Transactions() {
       </header>
       <div className="mb-6 flex flex-col sm:flex-row gap-4 bg-card p-4 rounded-lg shadow-sm">
         <div className="flex-1">
-          <Input
-            placeholder="Filter by type (Deposit, Transfer, Withdrawal)"
-            value={tempFilters.transaction_type}
-            onChange={(e) =>
+          <Select
+            onValueChange={(value) =>
               setTempFilters({
                 ...tempFilters,
-                transaction_type: e.target.value,
+                transaction_type: value === "all" ? "" : value,
               })
             }
-            className="bg-input text-foreground rounded-lg shadow-sm"
-            aria-label="Filter transactions by type"
-          />
+            value={tempFilters.transaction_type || "all"}
+          >
+            <SelectTrigger className="bg-input text-foreground rounded-lg shadow-sm">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent className="bg-background text-foreground border-border">
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="Deposit">Deposit</SelectItem>
+              <SelectItem value="Transfer">Transfer</SelectItem>
+              <SelectItem value="Withdrawal">Withdrawal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1">
+          <Select
+            onValueChange={(value) =>
+              setTempFilters({
+                ...tempFilters,
+                transaction_status: value === "all" ? "" : value,
+              })
+            }
+            value={tempFilters.transaction_status || "all"}
+          >
+            <SelectTrigger className="bg-input text-foreground rounded-lg shadow-sm">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent className="bg-background text-foreground border-border">
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Failed">Failed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex-1">
           <Input
-            placeholder="Filter by status (Pending, Completed, Failed)"
-            value={tempFilters.transaction_status}
+            placeholder="Filter by Username"
+            value={tempFilters.username}
             onChange={(e) =>
-              setTempFilters({
-                ...tempFilters,
-                transaction_status: e.target.value,
-              })
+              setTempFilters({ ...tempFilters, username: e.target.value })
             }
             className="bg-input text-foreground rounded-lg shadow-sm"
-            aria-label="Filter transactions by status"
-          />
-        </div>
-        <div className="flex-1">
-          <Input
-            placeholder="Filter by User ID"
-            value={tempFilters.user_id}
-            onChange={(e) =>
-              setTempFilters({ ...tempFilters, user_id: e.target.value })
-            }
-            className="bg-input text-foreground rounded-lg shadow-sm"
-            aria-label="Filter transactions by user ID"
+            aria-label="Filter transactions by username"
           />
         </div>
         <div className="flex-1">
@@ -328,14 +384,14 @@ export default function Transactions() {
         >
           <DataTable
             columns={columns}
-            data={data?.items || []}
+            data={paginatedTransactions}
             rowClassName="bg-card rounded-lg shadow-md hover:bg-muted/30 transition-colors duration-200"
             enablePagination={true}
             initialPageSize={filters.per_page}
             showPageSizeSelector={true}
             pageSizeOptions={[25, 50, 100, 200]}
             manualPagination={true}
-            pageCount={data?.total_pages || 1}
+            pageCount={pageCount}
             onPaginationChange={({ pageIndex, pageSize }) => {
               setFilters({
                 ...filters,

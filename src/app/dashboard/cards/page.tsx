@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -19,14 +18,18 @@ import { Card as UICard, CardContent } from "@/components/ui/card";
 interface Filters {
   page: number;
   per_page: number;
-  [key: string]: number;
+  user_id?: number;
 }
 
 const cleanFilters = (filters: Filters) => {
-  return {
+  const result: Partial<Filters> = {
     page: filters.page,
     per_page: filters.per_page,
   };
+  if (filters.user_id !== undefined) {
+    result.user_id = filters.user_id;
+  }
+  return result;
 };
 
 export default function Cards() {
@@ -42,9 +45,10 @@ export default function Cards() {
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["cards", filters.page, filters.per_page],
+    queryKey: ["cards", filters.page, filters.per_page, filters.user_id],
     queryFn: () => apiService.getCards(cleanFilters(filters)),
   });
+  console.log(data);
 
   const blockMutation = useMutation({
     mutationFn: (card_id: number) =>
@@ -169,9 +173,7 @@ export default function Cards() {
         </h1>
         <Button
           variant="ghost"
-          onClick={() =>
-            queryClient.invalidateQueries({ queryKey: ["cards"] })
-          }
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["cards"] })}
           className="text-muted-foreground hover:text-primary transition-transform duration-300 hover:rotate-90"
           aria-label="Refresh cards"
         >
@@ -189,10 +191,13 @@ export default function Cards() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Input
                 placeholder="Search by User ID..."
+                value={filters.user_id || ""}
                 onChange={(e) =>
                   setFilters({
                     ...filters,
-                    ...(isNaN(Number(e.target.value)) ? {} : { user_id: Number(e.target.value) }),
+                    user_id: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
                     page: 1,
                   })
                 }

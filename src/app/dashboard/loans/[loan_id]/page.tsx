@@ -16,7 +16,7 @@ import { BackButton } from "@/components/common/BackButton";
 export default function LoanDetails() {
   const { loan_id } = useParams();
   const queryClient = useQueryClient();
-  
+
   // Fetch loan details
   const {
     data: loan,
@@ -71,7 +71,9 @@ export default function LoanDetails() {
           Failed to load loan details
         </p>
         <Button
-          onClick={() => queryClient.invalidateQueries({ queryKey: ["loan", loan_id] })}
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["loan", loan_id] })
+          }
           variant="outline"
           className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
         >
@@ -105,9 +107,16 @@ export default function LoanDetails() {
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-muted-foreground">Loan Type</p>
-              <p className="text-foreground font-semibold">{loan.LoanTypeName}</p>
+              <p className="text-muted-foreground">UserID</p>
+              <p className="text-foreground font-semibold">{loan.UserID}</p>
             </div>
+            <div>
+              <p className="text-muted-foreground">Loan Type</p>
+              <p className="text-foreground font-semibold">
+                {loan.LoanTypeName}
+              </p>
+            </div>
+
             <div>
               <p className="text-muted-foreground">Loan Amount</p>
               <p className="text-foreground font-semibold">
@@ -132,7 +141,9 @@ export default function LoanDetails() {
             </div>
             <div>
               <p className="text-muted-foreground">Interest Rate</p>
-              <p className="text-foreground font-semibold">{loan.InterestRate}%</p>
+              <p className="text-foreground font-semibold">
+                {loan.InterestRate}%
+              </p>
             </div>
             <div>
               <p className="text-muted-foreground">Loan Duration</p>
@@ -178,25 +189,24 @@ export default function LoanDetails() {
 
           {loan.LoanStatus === "Pending" && (
             <div className="flex gap-4 mt-6">
-              
-                <Button
-                  onClick={() => approveMutation.mutate()}
-                  disabled={approveMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  {approveMutation.isPending ? "Approving..." : "Approve Loan"}
-                </Button>
-              
-                <Button
-                  onClick={() => rejectMutation.mutate()}
-                  disabled={rejectMutation.isPending}
-                  variant="destructive"
-                  className="flex items-center gap-2"
-                >
-                  <XCircle className="h-4 w-4" />
-                  {rejectMutation.isPending ? "Rejecting..." : "Reject Loan"}
-                </Button>
+              <Button
+                onClick={() => approveMutation.mutate()}
+                disabled={approveMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+              >
+                <CheckCircle className="h-4 w-4" />
+                {approveMutation.isPending ? "Approving..." : "Approve Loan"}
+              </Button>
+
+              <Button
+                onClick={() => rejectMutation.mutate()}
+                disabled={rejectMutation.isPending}
+                variant="destructive"
+                className="flex items-center gap-2"
+              >
+                <XCircle className="h-4 w-4" />
+                {rejectMutation.isPending ? "Rejecting..." : "Reject Loan"}
+              </Button>
             </div>
           )}
         </CardContent>
